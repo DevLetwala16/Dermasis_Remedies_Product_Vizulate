@@ -60,4 +60,9 @@ app.get('/api/vizulate-products', async (req, res) => {
     }
 });
 
+// Add this to your server.js
+app.get('/', (req, res) => {
+  res.send('Product Dermasis Backend Server is running successfully!');
+});
+
 app.listen(5000, () => console.log("✅ Server running on port 5000"));
