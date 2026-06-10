@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
+// import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 
@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const cors = require('cors');
+// const cors = require('cors');
 
 
 // product_vizulate collection (for the Product Visualizer frontend)
