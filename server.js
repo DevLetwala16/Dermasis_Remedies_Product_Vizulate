@@ -11,6 +11,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+const cors = require('cors');
 
 
 // product_vizulate collection (for the Product Visualizer frontend)
@@ -67,5 +68,11 @@ app.get('/', (req, res) => {
     status: "Healthy"
   });
 });
+
+// Allow your Vercel frontend to talk to your backend
+app.use(cors({
+  origin: 'https://your-product-dermasis-frontend.vercel.app', // Put your live Vercel URL here
+  credentials: true
+}));
 
 app.listen(5000, () => console.log("✅ Server running on port 5000"));
