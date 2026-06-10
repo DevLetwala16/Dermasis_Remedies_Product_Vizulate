@@ -69,10 +69,5 @@ app.get('/', (req, res) => {
   });
 });
 
-// // Allow your Vercel frontend to talk to your backend
-// app.use(cors({
-//   origin: 'http://dermasis-remedies-product-vizulate.vercel.app/', // Put your live Vercel URL here
-//   credentials: true
-// }));
 
 app.listen(5000, () => console.log("✅ Server running on port 5000"));
