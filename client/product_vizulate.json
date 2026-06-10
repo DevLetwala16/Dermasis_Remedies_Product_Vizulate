@@ -1,0 +1,197 @@
+[
+  {
+    "_id": "DERMASIS001",
+    "name": "Kerapick Shampoo",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085942/KERAPICK_SHAMPOO_mtfn6l.jpg"
+  },
+  {
+    "_id": "DERMASIS002",
+    "name": "Elizit-5",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085942/ELIZIT-5MG_l0jsdl.jpg"
+  },
+  {
+    "_id": "DERMASIS003",
+    "name": "ZITVEL-OC",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085941/ZITVEL_OC_pc7edz.jpg"
+  },
+  {
+    "_id": "DERMASIS004",
+    "name": "WRINKDERM",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085940/WRINKDERM_jfaaex.jpg"
+  },
+  {
+    "_id": "DERMASIS005",
+    "name": "Velosma-T",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085940/VELOSMA-T_ktttvx.jpg"
+  },
+  {
+    "_id": "DERMASIS006",
+    "name": "Cortivate-G",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085940/CORTIVATE-G_xbnfa1.jpg"
+  },
+  {
+    "_id": "DERMASIS007",
+    "name": "Topecia Forte Oil",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085940/TOPECIA_FORTE_OIL_v2j17t.jpg"
+  },
+  {
+    "_id": "DERMASIS008",
+    "name": "TOPECIA SERUM",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085940/TOPECIA_SERUM_ioxx1h.jpg"
+  },
+  {
+    "_id": "DERMASIS009",
+    "name": "Sporoc",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085939/SPOROC_ID_TAB_r9vwmr.jpg"
+  },
+  {
+    "_id": "DERMASIS010",
+    "name": "Ketosis Lotion",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085939/KETOSIS_LOTION_mlqnch.jpg"
+  },
+  {
+    "_id": "DERMASIS011",
+    "name": "Levior-10",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085938/LEVIOR-10MG_yxy1wl.jpg"
+  },
+  {
+    "_id": "DERMASIS012",
+    "name": "Glutamic",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085938/GLUTAMIC_uq1yn4.jpg"
+  },
+  {
+    "_id": "DERMASIS013",
+    "name": "Isomic",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085938/ISOMIC_10-20_su6oub.jpg"
+  },
+  {
+    "_id": "DERMASIS014",
+    "name": "EDGEGLO",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085937/EDGEGLO_qcdcbu.jpg"
+  },
+  {
+    "_id": "DERMASIS015",
+    "name": "Oxisis",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085937/OXISIS_nxldzx.jpg"
+  },
+  {
+    "_id": "DERMASIS016",
+    "name": "ATOSIS-G",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085937/ATOSIS-G_omeu3f.jpg"
+  },
+  {
+    "_id": "DERMASIS017",
+    "name": "AHC-5",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085937/AHC_5_mfwxc9.jpg"
+  },
+  {
+    "_id": "DERMASIS018",
+    "name": "Acnem_ide",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085936/ACNEM_IDE_F.W_mt6sk6.jpg"
+  },
+  {
+    "_id": "DERMASIS019",
+    "name": "AEL MOIST-C",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085936/AEL_MOIST-C_k2hqdk.jpg"
+  },
+  {
+    "_id": "DERMASIS020",
+    "name": "Silkmoist",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085936/SILK-MOIST_082435_dmqdkp.jpg"
+  },
+  {
+    "_id": "DERMASIS021",
+    "name": "ACNEM_IDE-GEL",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085936/ACNEM_IDE_GEL_081719_jr6xoj.jpg"
+  },
+  {
+    "_id": "DERMASIS022",
+    "name": "ZITVEL",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085935/ZITVEL_F.W_os0xhx.jpg"
+  },
+  {
+    "_id": "DERMASIS023",
+    "name": "SOLVATE-S",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085935/SOLVATE-S_skr22m.jpg"
+  },
+  {
+    "_id": "DERMASIS024",
+    "name": "VELOSMA-AZ",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085935/VELOSMA-AZ_pksgam.jpg"
+  },
+  {
+    "_id": "DERMASIS025",
+    "name": "SEBOSIS SHAMPOO",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085935/SEBOSIS-SHAMPOO_dqitup.jpg"
+  },
+  {
+    "_id": "DERMASIS026",
+    "name": "WRINKDERM-C",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085934/WRINKDERM-C_x2hjug.jpg"
+  },
+  {
+    "_id": "DERMASIS027",
+    "name": "Puremoist Cream",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085934/PUREMOIST_CREAM_ajlnwo.jpg"
+  },
+  {
+    "_id": "DERMASIS028",
+    "name": "KOJISIS-H",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085934/KOJISIS-H_xhyehf.jpg"
+  },
+  {
+    "_id": "DERMASIS029",
+    "name": "VELOSMA_cr",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085933/VELOSMA_CR_nwjzxj.jpg"
+  },
+  {
+    "_id": "DERMASIS030",
+    "name": "PUREMOIST",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085933/PUREMOIST_B-W_gzekwz.jpg"
+  },
+  {
+    "_id": "DERMASIS031",
+    "name": "SEBOSIS-B",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085933/SEBOSIS-B_retr0a.jpg"
+  },
+  {
+    "_id": "DERMASIS032",
+    "name": "Kojisis Ultra",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085932/KOJISIS_ULTRA_rddm9u.jpg"
+  },
+  {
+    "_id": "DERMASIS033",
+    "name": "UV MATT",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085931/UV_MATT_sunscreen_eriia8.jpg"
+  },
+  {
+    "_id": "DERMASIS034",
+    "name": "Elitraz-200",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085931/ELITRAZ_ysgekh.jpg"
+  },
+  {
+    "_id": "DERMASIS035",
+    "name": "UV-VEL",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085931/UV_VEL_SUNSCREEN_c258ht.jpg"
+  },
+  {
+    "_id": "DERMASIS036",
+    "name": "Candior-100",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085931/CANDIOR_edpizw.jpg"
+  },
+  {
+    "_id": "DERMASIS037",
+    "name": "TREXODERM",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085931/TREXODERM_maibpd.jpg"
+  },
+  {
+    "_id": "DERMASIS038",
+    "name": "Trichoseed",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085930/TRICHOSEED_TAB_nhzrz5.jpg"
+  },
+  {
+    "_id": "DERMASIS039",
+    "name": "EDGEGLY",
+    "link": "https://res.cloudinary.com/dpsq08nun/image/upload/v1781085930/EDGEGLY_6__mphdaa.jpg"
+  }
+]
