@@ -71,7 +71,7 @@ app.get('/', (req, res) => {
 
 // Allow your Vercel frontend to talk to your backend
 app.use(cors({
-  origin: 'https://your-product-dermasis-frontend.vercel.app', // Put your live Vercel URL here
+  origin: 'http://dermasis-remedies-product-vizulate.vercel.app/', // Put your live Vercel URL here
   credentials: true
 }));
 
