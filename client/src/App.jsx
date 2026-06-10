@@ -3,10 +3,12 @@ import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye } from 'luc
 import './index.css';
 
 const LOGO_URL = "https://res.cloudinary.com/dpsq08nun/image/upload/v1777359495/IMG-20260407-WA0000_eyvt70.jpg";
-// const API_URL = "http://localhost:5000/api/vizulate-products";
-// Example config file or Axios setup
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/vizulate-products"; 
-// (Use process.env.REACT_APP_API_URL if you used Create React App instead of Vite)
+const BACKEND_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://dermasis-remedies-product-vizulate.onrender.com";
+
+const API_URL = `${BACKEND_URL}/api/vizulate-products`;
+
 function App() {
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);

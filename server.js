@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
-// import cors from 'cors';
+import cors from 'cors';
 import nodemailer from 'nodemailer';
 import dns from 'dns';
 
@@ -9,10 +9,15 @@ dns.setServers(["1.1.1.1","8.8.8.8"]);
 
 const app = express();
 app.use(express.json());
-// app.use(cors());
-
-// const cors = require('cors');
-
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://dermasis-remedies-product-vizulate.vercel.app'
+  ],
+  methods: ['GET', 'POST'],
+  credentials: true
+}));
 
 // product_vizulate collection (for the Product Visualizer frontend)
 const VizulateSchema = new mongoose.Schema({
