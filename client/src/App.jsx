@@ -2,9 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye } from 'lucide-react';
 import './index.css';
 
-const LOGO_URL = "https://res.cloudinary.com/dpsq08nun/image/upload/v1777359495/IMG-20260407-WA0000_eyvt70.jpg";
-const BACKEND_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
+// Cloudinary base — apply f_auto,q_auto (format + quality) and optional width resize
+const CLOUDINARY_BASE = "https://res.cloudinary.com/dpsq08nun/image/upload";
+const LOGO_VERSION = "v1777359495/IMG-20260407-WA0000_eyvt70.jpg";
+
+/**
+ * Build an optimised Cloudinary URL.
+ * @param {string} src  - Raw Cloudinary URL or path fragment after /upload/
+ * @param {number} [w]  - Optional pixel width to resize to at the edge
+ */
+const clImg = (src, w) => {
+  // If src is already a full Cloudinary URL, replace /upload/ with the transforms
+  const transforms = w ? `f_auto,q_auto,w_${w}` : 'f_auto,q_auto';
+  if (src && src.startsWith(CLOUDINARY_BASE)) {
+    return src.replace('/image/upload/', `/image/upload/${transforms}/`);
+  }
+  return src; // non-Cloudinary URLs pass through unchanged
+};
+
+const LOGO_URL = `${CLOUDINARY_BASE}/f_auto,q_auto,w_300/${LOGO_VERSION}`;
+// const LOGO_URL1 = `${CLOUDINARY_BASE}${LOGO_VERSION}`;
+const BACKEND_URL = window.location.hostname === "localhost"
+  ? "http://localhost:5000"
   : "https://dermasis-remedies-product-vizulate.onrender.com";
 
 const API_URL = `${BACKEND_URL}/api/vizulate-products`;
@@ -30,10 +49,10 @@ function App() {
           const data = await response.json();
           setProducts(data);
           
-          // Preload images for zero wait time
+          // Preload optimised images for zero wait time
           data.forEach(product => {
             const img = new Image();
-            img.src = product.link;
+            img.src = clImg(product.link, 900);
           });
         } else {
           console.error("Failed to fetch products");
@@ -114,7 +133,15 @@ function App() {
   if (loading) {
     return (
       <div className="loading-screen">
-        <img src={LOGO_URL} alt="Dermasis Remedies Loading" className="loading-logo" />
+        {/* LCP element — fetchpriority=high + no lazy loading for fastest paint */}
+        <img
+          src={LOGO_URL}
+          alt="Dermasis Remedies Loading..."
+          className="loading-logo"
+          width="300"
+          height="300"
+          fetchpriority="high"
+        />
         <p className="loading-text">LOADING ...</p>
       </div>
     );
@@ -126,10 +153,20 @@ function App() {
     <div className="app-container">
       <header className="header">
   <div className="header-brand">
-    <img src={LOGO_URL} alt="Dermasis Logo" className="header-logo" />
-    <h1 className="brand-name">
-      DERMASIS <span className="brand-suffix">REMEDIES Pvt. Ltd.</span>
-    </h1>
+    {/* Explicit width/height prevents Cumulative Layout Shift */}
+    <img
+      src={LOGO_URL}
+      alt="Dermasis Logo"
+      className="header-logo"
+      width="80"
+      height="80"
+    />
+    {/* Enhanced HTML for this layout */}
+    <div className="brand-container pharma-layout">
+      <h1 className="brand-name">DERMASIS</h1>
+      <div className="divider"></div>
+      <span className="brand-suffix">REMEDIES PVT. LTD.</span>
+    </div>
   </div>
   <nav className="header-nav">
     <a href="#visualizer" className="nav-link">Product Visualizer</a>
@@ -160,12 +197,20 @@ function App() {
           {showSuggestions && filteredSuggestions.length > 0 && (
             <div className="search-suggestions active">
               {filteredSuggestions.map(product => (
-                <div 
-                  key={product._id} 
+                <div
+                  key={product._id}
                   className="suggestion-item"
                   onClick={() => handleSuggestionClick(product)}
                 >
-                  <img src={product.link} alt={product.name} className="suggestion-img" />
+                  {/* Resize thumbnail to 80px wide at the Cloudinary edge */}
+                  <img
+                    src={clImg(product.link, 80)}
+                    alt={product.name}
+                    className="suggestion-img"
+                    width="40"
+                    height="40"
+                    loading="lazy"
+                  />
                   <span>{product.name}</span>
                 </div>
               ))}
@@ -186,16 +231,23 @@ function App() {
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
             >
-              <button className="nav-arrow left" onClick={prevProduct}>
+              {/* aria-label makes carousel controls accessible to screen readers */}
+              <button className="nav-arrow left" onClick={prevProduct} aria-label="Previous Product">
                 <ChevronLeft size={40} />
               </button>
-              
+
               <div className="product-image-wrapper">
-                {/* Because images are preloaded, this will change instantly */}
-                <img src={currentProduct?.link} alt={currentProduct?.name} className="product-image" />
+                {/* Cloudinary resizes to 900px wide; explicit dims reserve layout space */}
+                <img
+                  src={clImg(currentProduct?.link, 900)}
+                  alt={currentProduct?.name}
+                  className="product-image"
+                  width="900"
+                  height="900"
+                />
               </div>
 
-              <button className="nav-arrow right" onClick={nextProduct}>
+              <button className="nav-arrow right" onClick={nextProduct} aria-label="Next Product">
                 <ChevronRight size={40} />
               </button>
             </div>
@@ -211,7 +263,14 @@ function App() {
       <footer className="footer" id="contact">
         <div className="footer-content">
           <div className="footer-section">
-            <img src={LOGO_URL} alt="Dermasis Logo" className="footer-logo" />
+            <img
+              src={LOGO_URL}
+              alt="Dermasis Logo"
+              className="footer-logo"
+              width="80"
+              height="80"
+              loading="lazy"
+            />
             <p className="footer-text" style={{marginTop: '1rem'}}>
               DERMASIS REMEDIES Pvt. Ltd. <br/>
               Professional Pharmaceutical Product Visualizer.
@@ -226,8 +285,8 @@ function App() {
 
           <div className="footer-section">
             <h3 className="footer-title">Headquarters</h3>
-            <p className="footer-text"><MapPin size={18} /> 218, Crystal Plaza, Kiran Chowk Rd, Varachha</p>
-            <p className="footer-text" style={{marginLeft: "26px"}}>Surat, Gujarat, India, 395010</p>
+            <p className="footer-text"><MapPin size={18} /> 218, Crystal Plaza,</p>
+            <p className="footer-text" style={{marginLeft: "26px"}}>SRT, Gujarat, India, 395010</p>
           </div>
         </div>
         

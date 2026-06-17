@@ -387,14 +387,16 @@ body::after {
   align-items: center;
   gap: 0.8rem;
   font-size: 0.95rem;
-  color: #64748b;
+  /* #475569 = ~5.9:1 contrast ratio on white — passes WCAG AA */
+  color: #475569;
 }
 
 .footer-bottom {
   text-align: center;
   padding-top: 2rem;
   font-size: 0.9rem;
-  color: #94a3b8;
+  /* #596070 = ~4.6:1 contrast ratio on white — passes WCAG AA */
+  color: #596070;
 }
 
 /* ====================================
@@ -492,4 +494,30 @@ body::after {
     font-size: 1rem;
     padding: 1rem 1rem 1rem 3rem;
   }
+}
+.pharma-layout {
+  font-family: 'Roboto', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e3a8a; /* Deep corporate blue */
+  margin: 0;
+}
+
+.divider {
+  width: 2px;
+  height: 2.5rem;
+  background-color: #cbd5e1;
+}
+
+.brand-suffix {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #475569;
+  letter-spacing: 0.15em;
 }

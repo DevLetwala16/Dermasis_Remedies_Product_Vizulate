@@ -2,9 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/dpsq08nun/image/upload/v1777359495/IMG-20260407-WA0000_eyvt70.jpg" />
+
+    <!-- Early network connections to critical CDNs -->
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <!-- Preload LCP image so browser fetches it before JS bundle executes -->
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/dpsq08nun/image/upload/f_auto,q_auto,w_300/v1777359495/IMG-20260407-WA0000_eyvt70.jpg"
+    />
+
+    <link rel="icon" type="image/svg+xml" href="https://res.cloudinary.com/dpsq08nun/image/upload/f_auto,q_auto,w_64/v1777359495/IMG-20260407-WA0000_eyvt70.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DERMASIS REMEDIES Pvt. Ltd / Product Vizulate</title>
+
+    <!-- SEO meta description -->
+    <meta name="description" content="A comprehensive guide to pioneering dermatological wellness for healthy, resilient skin. Explore Dermasis Remedies pharmaceutical products." />
   </head>
   <body>
     <div id="root"></div>
