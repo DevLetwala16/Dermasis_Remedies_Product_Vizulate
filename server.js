@@ -15,9 +15,11 @@ app.use(cors({
     'http://localhost:5174',
     'https://dermasis-remedies-product-vizulate.vercel.app'
   ],
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   credentials: true
 }));
+
+// ─── Schemas ────────────────────────────────────────────────────────────────
 
 // product_vizulate collection (for the Product Visualizer frontend)
 const VizulateSchema = new mongoose.Schema({
@@ -28,7 +30,29 @@ const VizulateSchema = new mongoose.Schema({
 
 const ProductVizulate = mongoose.model('ProductVizulate', VizulateSchema);
 
-// Connect to your Database (Modified to use Dermasis database specifically)
+// Doctor_List collection
+const DoctorProductSchema = new mongoose.Schema({
+  id:   { type: String, required: true },
+  name: { type: String, required: true },
+  link: { type: String, required: true },
+}, { _id: false });
+
+const DoctorSchema = new mongoose.Schema({
+  name:        { type: String, required: true },
+  phone:       { type: String, required: true },
+  state:       { type: String, required: true },
+  city:        { type: String, required: true },
+  subLocality: { type: String, required: true },
+  email:       { type: String, default: '' },
+  degreeType:  { type: String, required: true },
+  grade:       { type: Number, required: true },
+  products:    { type: [DoctorProductSchema], default: [] },
+}, { collection: 'Doctor_List' });
+
+const Doctor = mongoose.model('Doctor', DoctorSchema);
+
+// ─── DB Connection ───────────────────────────────────────────────────────────
+
 const url = process.env.MONGODB_URI;
 
 mongoose.connect(url)
@@ -40,7 +64,7 @@ mongoose.connect(url)
         console.error("Full Error:", err);
     });
 
-
+// ─── Product Vizulate Routes ─────────────────────────────────────────────────
 
 app.get('/api/products', async (req, res) => {
     try {
@@ -48,7 +72,7 @@ app.get('/api/products', async (req, res) => {
         let query = {};
         if (category) query.category = category;
         if (subCategory) query.Category_sub = subCategory;
-        const products = await ProductList.find(query);
+        const products = await ProductVizulate.find(query);
         res.status(200).json(products);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -66,13 +90,102 @@ app.get('/api/vizulate-products', async (req, res) => {
     }
 });
 
-// Add this near the bottom of your server.js, before app.listen
+// ─── Doctor Routes ───────────────────────────────────────────────────────────
+
+// GET  /api/doctors          — all doctors sorted by name asc
+app.get('/api/doctors', async (req, res) => {
+  try {
+    const doctors = await Doctor.find({}).sort({ name: 1 });
+    res.status(200).json(doctors);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET  /api/doctors/:id      — single doctor with products
+app.get('/api/doctors/:id', async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+    res.status(200).json(doctor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/doctors          — create new doctor
+app.post('/api/doctors', async (req, res) => {
+  try {
+    const { name, phone, state, city, subLocality, email, degreeType, grade, defaultProduct } = req.body;
+
+    const products = [];
+    if (defaultProduct && defaultProduct.id && defaultProduct.name && defaultProduct.link) {
+      products.push({
+        id:   defaultProduct.id,
+        name: defaultProduct.name,
+        link: defaultProduct.link,
+      });
+    }
+
+    const doctor = new Doctor({ name, phone, state, city, subLocality, email: email || '', degreeType, grade, products });
+    await doctor.save();
+    res.status(201).json(doctor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/doctors/:id    — delete a doctor entirely
+app.delete('/api/doctors/:id', async (req, res) => {
+  try {
+    const deleted = await Doctor.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Doctor not found' });
+    res.status(200).json({ message: 'Doctor deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/doctors/:id/products          — add a product to doctor
+app.patch('/api/doctors/:id/products', async (req, res) => {
+  try {
+    const { id, name, link } = req.body;
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+
+    // Avoid duplicate product
+    const alreadyExists = doctor.products.some(p => p.id === id);
+    if (alreadyExists) return res.status(409).json({ error: 'Product already linked to this doctor' });
+
+    doctor.products.push({ id, name, link });
+    await doctor.save();
+    res.status(200).json(doctor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/doctors/:id/products/:productId  — remove a product from doctor
+app.delete('/api/doctors/:id/products/:productId', async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+
+    doctor.products = doctor.products.filter(p => p.id !== req.params.productId);
+    await doctor.save();
+    res.status(200).json(doctor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Health Check ────────────────────────────────────────────────────────────
+
 app.get('/', (req, res) => {
   res.status(200).json({
     message: "Product Dermasis Backend API is running successfully!",
     status: "Healthy"
   });
 });
-
 
 app.listen(5000, () => console.log("✅ Server running on port 5000"));
