@@ -6,6 +6,14 @@ const DEGREE_TYPES = [
   'DNB', 'DM', 'MCh', 'BPT', 'MPT', 'DOMS', 'DO', 'Other'
 ];
 
+const SPECIALIZATIONS = [
+  'Cardiology', 'Dentistry', 'Dermatology', 'Endocrinology', 'ENT (Otolaryngology)', 
+  'Gastroenterology', 'General Practice', 'Gynecology', 'Hematology', 
+  'Internal Medicine', 'Neurology', 'Oncology', 'Ophthalmology', 
+  'Orthopedics', 'Pediatrics', 'Psychiatry', 'Pulmonology', 
+  'Radiology', 'Rheumatology', 'Surgery', 'Urology'
+];
+
 const DEFAULT_PRODUCT = {
   id:   import.meta.env.VITE_DEFAULT_PRODUCT_ID   || '6a295740a8d4745e4a65250e',
   name: import.meta.env.VITE_DEFAULT_PRODUCT_NAME || ' Dermasis',
@@ -17,11 +25,48 @@ const DEFAULT_PRODUCT = {
 function NewDoctorPage({ navigateTo, BACKEND_URL }) {
   const [form, setForm] = useState({
     name: '', phone: '', state: '', city: '',
-    subLocality: '', email: '', degreeType: '', grade: ''
+    subLocality: '', email: '', degreeType: '', specialization: '', grade: ''
   });
   const [errors,  setErrors]  = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  const [indiaStates, setIndiaStates] = useState([]);
+  const [indiaCities, setIndiaCities] = useState([]);
+
+  React.useEffect(() => {
+    fetch('https://countriesnow.space/api/v0.1/countries/states', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ country: 'India' })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if(d && d.data && d.data.states) {
+        setIndiaStates(d.data.states.map(s => s.name));
+      }
+    })
+    .catch(console.error);
+  }, []);
+
+  React.useEffect(() => {
+    if (form.state) {
+      fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ country: 'India', state: form.state })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if(d && d.data) {
+          setIndiaCities(d.data);
+        }
+      })
+      .catch(console.error);
+    } else {
+      setIndiaCities([]);
+    }
+  }, [form.state]);
 
   const validate = () => {
     const e = {};
@@ -126,18 +171,24 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           {/* State */}
           <div className="nd-field">
             <label htmlFor="nd-state">State *</label>
-            <input id="nd-state" name="state" type="text"
+            <input id="nd-state" name="state" type="text" list="state-list"
               placeholder="Gujarat" value={form.state} onChange={handleChange}
-              className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} />
+              className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+            <datalist id="state-list">
+              {indiaStates.map(s => <option key={s} value={s} />)}
+            </datalist>
             {errors.state && <span className="nd-error">{errors.state}</span>}
           </div>
 
           {/* City */}
           <div className="nd-field">
             <label htmlFor="nd-city">City *</label>
-            <input id="nd-city" name="city" type="text"
+            <input id="nd-city" name="city" type="text" list="city-list"
               placeholder="Surat" value={form.city} onChange={handleChange}
-              className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} />
+              className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+            <datalist id="city-list">
+              {indiaCities.map(c => <option key={c} value={c} />)}
+            </datalist>
             {errors.city && <span className="nd-error">{errors.city}</span>}
           </div>
 
@@ -160,6 +211,18 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
               {DEGREE_TYPES.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
             {errors.degreeType && <span className="nd-error">{errors.degreeType}</span>}
+          </div>
+
+          {/* Specialization */}
+          <div className="nd-field">
+            <label htmlFor="nd-specialization">Specialization <span className="nd-optional">(optional)</span></label>
+            <input id="nd-specialization" name="specialization" type="text" list="specialization-list"
+              placeholder="Cardiology" value={form.specialization} onChange={handleChange}
+              className={errors.specialization ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+            <datalist id="specialization-list">
+              {SPECIALIZATIONS.map(s => <option key={s} value={s} />)}
+            </datalist>
+            {errors.specialization && <span className="nd-error">{errors.specialization}</span>}
           </div>
 
           {/* Grade */}

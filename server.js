@@ -38,15 +38,16 @@ const DoctorProductSchema = new mongoose.Schema({
 }, { _id: false });
 
 const DoctorSchema = new mongoose.Schema({
-  name:        { type: String, required: true },
-  phone:       { type: String, required: true },
-  state:       { type: String, required: true },
-  city:        { type: String, required: true },
-  subLocality: { type: String, required: true },
-  email:       { type: String, default: '' },
-  degreeType:  { type: String, required: true },
-  grade:       { type: Number, required: true },
-  products:    { type: [DoctorProductSchema], default: [] },
+  name:          { type: String, required: true },
+  phone:         { type: String, required: true },
+  state:         { type: String, required: true },
+  city:          { type: String, required: true },
+  subLocality:   { type: String, required: '' },
+  email:         { type: String, default: '' },
+  degreeType:    { type: String, required: true },
+  specialization:{ type: String, default: true },
+  grade:         { type: Number, required: true },
+  products:      { type: [DoctorProductSchema], default: [] },
 }, { collection: 'Doctor_List' });
 
 const Doctor = mongoose.model('Doctor', DoctorSchema);
@@ -116,7 +117,7 @@ app.get('/api/doctors/:id', async (req, res) => {
 // POST /api/doctors          — create new doctor
 app.post('/api/doctors', async (req, res) => {
   try {
-    const { name, phone, state, city, subLocality, email, degreeType, grade, defaultProduct } = req.body;
+    const { name, phone, state, city, subLocality, email, degreeType, specialization, grade, defaultProduct } = req.body;
 
     const products = [];
     if (defaultProduct && defaultProduct.id && defaultProduct.name && defaultProduct.link) {
@@ -127,7 +128,7 @@ app.post('/api/doctors', async (req, res) => {
       });
     }
 
-    const doctor = new Doctor({ name, phone, state, city, subLocality, email: email || '', degreeType, grade, products });
+    const doctor = new Doctor({ name, phone, state, city, subLocality, email: email || '', degreeType, specialization: specialization || '', grade, products });
     await doctor.save();
     res.status(201).json(doctor);
   } catch (err) {

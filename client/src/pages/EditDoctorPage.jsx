@@ -18,7 +18,12 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
   const [saved,         setSaved]         = useState(false);
   const [confirmed,     setConfirmed]     = useState(false); // checkbox
 
+  const [prodQuery,     setProdQuery]     = useState('');
+  const [prodSuggestions, setProdSuggestions] = useState([]);
+  const [showProdSug,   setShowProdSug]   = useState(false);
+
   const sugRef = useRef(null);
+  const prodSugRef = useRef(null);
 
   /* ── Fetch doctors & products on mount ─────────────────────── */
   useEffect(() => {
@@ -33,7 +38,10 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
 
   /* ── Click outside to close suggestions ────────────────────── */
   useEffect(() => {
-    const handler = e => { if (sugRef.current && !sugRef.current.contains(e.target)) setShowSug(false); };
+    const handler = e => { 
+      if (sugRef.current && !sugRef.current.contains(e.target)) setShowSug(false); 
+      if (prodSugRef.current && !prodSugRef.current.contains(e.target)) setShowProdSug(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -61,6 +69,29 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
     setShowSug(false);
     setSaved(false);
     setConfirmed(false);
+    setAddError('');
+  };
+
+  /* ── Product search suggestions ────────────────────────────── */
+  const handleProdQueryChange = e => {
+    const val = e.target.value;
+    setProdQuery(val);
+    setSelectedProd('');
+    if (val.trim().length > 0) {
+      const filtered = allProducts
+        .filter(p => !docProducts.some(dp => dp.id === p._id))
+        .filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
+      setProdSuggestions(filtered);
+      setShowProdSug(true);
+    } else {
+      setShowProdSug(false);
+    }
+  };
+
+  const selectProduct = prod => {
+    setProdQuery(prod.name);
+    setSelectedProd(prod._id);
+    setShowProdSug(false);
     setAddError('');
   };
 
@@ -99,6 +130,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
       const updated = await res.json();
       setDocProducts(updated.products || []);
       setSelectedProd('');
+      setProdQuery('');
     } catch (err) {
       setAddError(err.message);
     } finally {
@@ -217,26 +249,38 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
           <div className="ed-section">
             <h3 className="ed-section-title">Subsection 1 — Add Product</h3>
             <p className="ed-section-hint">
-              Select a product from the list below and click Add to link it to this doctor.
+              Search for a product below and click Add to link it to this doctor.
             </p>
-            <div className="ed-add-product-row">
-              <select
-                className="nd-input nd-select ed-product-select"
-                value={selectedProd}
-                onChange={e => { setSelectedProd(e.target.value); setAddError(''); }}
-              >
-                <option value="">— Choose a product —</option>
-                {allProducts
-                  .filter(p => !docProducts.some(dp => dp.id === p._id))
-                  .map(p => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))
-                }
-              </select>
-              <button className="ed-add-btn" onClick={handleAddProduct} disabled={adding}>
+            <div className="ed-add-product-row" ref={prodSugRef} style={{ position: 'relative' }}>
+              <div className="ed-search-input-wrap" style={{ flex: 1 }}>
+                <Search size={16} className="ed-search-icon" />
+                <input
+                  type="text"
+                  className="nd-input ed-search-input"
+                  placeholder="Type product name to search…"
+                  value={prodQuery}
+                  onChange={handleProdQueryChange}
+                  onFocus={() => prodQuery && setShowProdSug(true)}
+                  autoComplete="off"
+                />
+              </div>
+              <button className="ed-add-btn" onClick={handleAddProduct} disabled={adding || !selectedProd}>
                 {adding ? <span className="nd-btn-spinner" /> : <Plus size={16} />}
                 Add
               </button>
+
+              {showProdSug && prodSuggestions.length > 0 && (
+                <div className="ed-suggestions" style={{ top: 'calc(100% + 6px)' }}>
+                  {prodSuggestions.map(p => (
+                    <div key={p._id} className="ed-suggestion-item" onClick={() => selectProduct(p)}>
+                      <img src={p.link} alt={p.name} className="ed-sug-avatar" style={{ borderRadius: 4, objectFit: 'cover' }} />
+                      <div>
+                        <p className="ed-sug-name">{p.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {addError && <span className="nd-error">{addError}</span>}
           </div>
