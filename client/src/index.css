@@ -503,7 +503,7 @@ body::after {
 }
 
 .brand-name {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1e3a8a; /* Deep corporate blue */
   margin: 0;
@@ -516,7 +516,7 @@ body::after {
 }
 
 .brand-suffix {
-  font-size: 1.1rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #475569;
   letter-spacing: 0.15em;
