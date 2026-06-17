@@ -30,7 +30,6 @@ const ProductVizulate = mongoose.model('ProductVizulate', VizulateSchema);
 
 // Connect to your Database (Modified to use Dermasis database specifically)
 const url = process.env.MONGODB_URI;
-//|| "mongodb+srv://Dev_letwala_Softcap:Dev_mongodb0716@softcapdev.puzklaw.mongodb.net/Dermasis?appName=SoftcapDev
 
 mongoose.connect(url)
     .then(() => console.log("✅ Database Connected Successfully"))
