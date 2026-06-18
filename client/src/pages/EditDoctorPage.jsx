@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Edit3, Search, Download, Plus, Trash2, Save, CheckCircle, GripVertical } from 'lucide-react';
 
+const CLOUDINARY_BASE = "https://res.cloudinary.com/dpsq08nun/image/upload";
+const clImg = (src, w) => {
+  const transforms = w ? `f_auto,q_auto,w_${w}` : 'f_auto,q_auto';
+  if (src && src.startsWith(CLOUDINARY_BASE)) {
+    return src.replace('/image/upload/', `/image/upload/${transforms}/`);
+  }
+  return src;
+};
+
 function EditDoctorPage({ navigateTo, BACKEND_URL }) {
   /* ── State ─────────────────────────────────────────────────── */
   const [allDoctors,    setAllDoctors]    = useState([]);
@@ -80,10 +89,11 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
     setProdQuery(val);
     setSelectedProd('');
     if (val.trim().length > 0) {
+      const linkedIds = new Set(docProducts.map(dp => dp.id));
       const filtered = allProducts
-        .filter(p => !docProducts.some(dp => dp.id === p._id))
+        .filter(p => !linkedIds.has(p._id))
         .filter(p => p.name.toLowerCase().includes(val.toLowerCase()));
-      setProdSuggestions(filtered);
+      setProdSuggestions(filtered.slice(0, 30));
       setShowProdSug(true);
     } else {
       setShowProdSug(false);
@@ -309,7 +319,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
                 <div className="ed-suggestions" style={{ top: 'calc(100% + 6px)' }}>
                   {prodSuggestions.map(p => (
                     <div key={p._id} className="ed-suggestion-item" onClick={() => selectProduct(p)}>
-                      <img src={p.link} alt={p.name} className="ed-sug-avatar" style={{ borderRadius: 4, objectFit: 'cover' }} />
+                      <img src={clImg(p.link, 80)} alt={p.name} className="ed-sug-avatar" style={{ borderRadius: 4, objectFit: 'cover' }} loading="lazy" />
                       <div>
                         <p className="ed-sug-name">{p.name}</p>
                       </div>
@@ -345,11 +355,10 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
                       <GripVertical size={20} />
                     </div>
                     <img
-                      src={prod.link}
+                      src={clImg(prod.link, 100)}
                       alt={prod.name}
                       className="ed-product-thumb"
                       loading="lazy"
-                      style={{ pointerEvents: 'none' }}
                     />
                     <div className="ed-product-details">
                       <p className="ed-product-name">{prod.name}</p>
