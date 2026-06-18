@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users, Maximize2, X, Play, Pause, Settings } from 'lucide-react';
 import './index.css';
 import DoctorsPage      from './pages/DoctorsPage.jsx';
 import NewDoctorPage    from './pages/NewDoctorPage.jsx';
@@ -37,6 +37,17 @@ function App() {
   const [currentIndex,    setCurrentIndex]    = useState(0);
   const [touchStart,      setTouchStart]      = useState(null);
   const [touchEnd,        setTouchEnd]        = useState(null);
+
+  /* ── New Feature state ──────────────────────────────── */
+  const [fullscreen,      setFullscreen]      = useState(false);
+  const [imgAnim,         setImgAnim]         = useState('');
+  const [isPlaying,       setIsPlaying]       = useState(false);
+  const [playSpeed,       setPlaySpeed]       = useState(1);
+  const [animStyle,       setAnimStyle]       = useState('slide');
+  const [hasFinishedPlay, setHasFinishedPlay] = useState(false);
+  const [arrowVisible,    setArrowVisible]    = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
+  const hoverTimer = useRef(null);
 
   /* ── Routing state ──────────────────────────────────── */
   const [page,       setPage]       = useState('home');  // 'home'|'doctors'|'new-doctor'|'delete-doctor'|'edit-doctor'|'doctor-detail'
@@ -115,12 +126,51 @@ function App() {
   };
 
   // ── Product navigation ───────────────────────────────
-  const nextProduct = () => {
-    if (products.length > 0) setCurrentIndex(i => (i + 1) % products.length);
+  const goTo = (dir) => {
+    if (products.length === 0) return;
+    
+    let animClass = '';
+    if (animStyle === 'slide') {
+      animClass = dir === 'next' ? 'slide-right' : 'slide-left';
+    } else if (animStyle === 'fade') {
+      animClass = 'fade-in';
+    } else if (animStyle === 'zoom') {
+      animClass = 'zoom-in';
+    }
+    
+    setImgAnim(animClass);
+    setCurrentIndex(prev =>
+      dir === 'next'
+        ? (prev + 1) % products.length
+        : (prev === 0 ? products.length - 1 : prev - 1)
+    );
   };
-  const prevProduct = () => {
-    if (products.length > 0) setCurrentIndex(i => (i === 0 ? products.length - 1 : i - 1));
+
+  const nextProduct = () => goTo('next');
+  const prevProduct = () => goTo('prev');
+
+  const showArrows = () => {
+    clearTimeout(hoverTimer.current);
+    setArrowVisible(true);
+    hoverTimer.current = setTimeout(() => setArrowVisible(false), 2500);
   };
+
+  // ── Auto-play Effect ─────────────────────────────────
+  useEffect(() => {
+    let timer;
+    if (isPlaying && !hasFinishedPlay) {
+      const delay = 2000 / playSpeed;
+      timer = setTimeout(() => {
+        if (currentIndex === products.length - 1) {
+          setIsPlaying(false);
+          setHasFinishedPlay(true);
+        } else {
+          goTo('next');
+        }
+      }, delay);
+    }
+    return () => clearTimeout(timer);
+  }, [currentIndex, isPlaying, playSpeed, products.length, hasFinishedPlay, animStyle]);
 
   // ── Swipe handlers ───────────────────────────────────
   const minSwipeDistance = 50;
@@ -300,35 +350,180 @@ function App() {
 
         {/* Product Visualizer */}
         {products.length > 0 ? (
-          <>
-            {/* <div className="product-info">
-              <h1 className="product-name">{currentProduct?.name}</h1>
-            </div> */}
-
-            <div className="visualizer-container"
+          <div className="dv-vis-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="visualizer-container dv-visualizer-wrap"
+              onMouseMove={showArrows}
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
+              onClick={() => setIsPlaying(!isPlaying)}
             >
-              <button className="nav-arrow left" onClick={prevProduct} aria-label="Previous Product">
+              <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
+                onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous Product">
                 <ChevronLeft size={40} />
               </button>
 
-              <div className="product-image-wrapper">
+              <div className="product-image-wrapper dv-img-frame">
                 <img
+                  key={currentProduct?._id || currentProduct?.id}
                   src={clImg(currentProduct?.link, 900)}
                   alt={currentProduct?.name}
-                  className="product-image"
+                  className={`product-image dv-product-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
                   width="900"
                   height="900"
                 />
               </div>
 
-              <button className="nav-arrow right" onClick={nextProduct} aria-label="Next Product">
+              <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
+                onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next Product">
                 <ChevronRight size={40} />
               </button>
             </div>
-          </>
+            
+            <button className="dv-expand-btn" onClick={() => setFullscreen(true)} title="Fullscreen">
+              <Maximize2 size={20} />
+            </button>
+
+            {/* Settings Toggle & Controls */}
+            <div className="ap-settings-container">
+              <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
+                <Settings size={18} /> Settings
+              </button>
+              
+              {showSettings && (
+                <div className="ap-controls">
+                  <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)} title={isPlaying ? "Pause" : "Play"}>
+                    {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                  </button>
+                  <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
+                    <option value="0.25">0.25x</option>
+                    <option value="0.5">0.5x</option>
+                    <option value="1">1x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                    <option value="2.5">2.5x</option>
+                  </select>
+                  <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
+                    <option value="slide">Slide</option>
+                    <option value="fade">Fade</option>
+                    <option value="zoom">Zoom</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* End of Play Overlay */}
+            {hasFinishedPlay && (
+              <div className="ap-end-overlay">
+                <h2 className="ap-end-title">Visualization Complete</h2>
+                <div className="ap-end-actions">
+                  <button className="ap-end-btn ap-btn-home" onClick={() => {
+                    setHasFinishedPlay(false);
+                    setCurrentIndex(0);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}>
+                    Back to Start
+                  </button>
+                  <button className="ap-end-btn ap-btn-again" onClick={() => {
+                    setHasFinishedPlay(false);
+                    setCurrentIndex(0);
+                    setIsPlaying(true);
+                  }}>
+                    Play Again
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Fullscreen Overlay */}
+            {fullscreen && (
+              <div className="dv-fullscreen-overlay">
+                <button className="dv-fs-close" onClick={() => setFullscreen(false)}>
+                  <X size={28} />
+                </button>
+                <div className="dv-fs-name">{currentProduct?.name}</div>
+                <div className="dv-fs-counter">{currentIndex + 1} / {products.length}</div>
+
+                <div className="dv-visualizer-wrap dv-fs-vis"
+                  onMouseMove={showArrows}
+                  onTouchStart={onTouchStart}
+                  onTouchMove={onTouchMove}
+                  onTouchEnd={onTouchEnd}
+                  onClick={() => setIsPlaying(!isPlaying)}
+                >
+                  <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous">
+                    <ChevronLeft size={48} />
+                  </button>
+                  
+                  {currentProduct && (
+                    <img
+                      key={`fs-${currentProduct?._id || currentProduct?.id}`}
+                      src={clImg(currentProduct.link, 1200)}
+                      alt={currentProduct.name}
+                      className={`dv-product-img dv-fs-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
+                    />
+                  )}
+                  
+                  <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next">
+                    <ChevronRight size={48} />
+                  </button>
+                </div>
+
+                <div className="ap-settings-container" style={{ position: 'absolute', bottom: '2rem' }}>
+                  <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
+                    <Settings size={18} /> Settings
+                  </button>
+                  
+                  {showSettings && (
+                    <div className="ap-controls">
+                      <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)}>
+                        {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                      </button>
+                      <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
+                        <option value="0.25">0.25x</option>
+                        <option value="0.5">0.5x</option>
+                        <option value="1">1x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2x</option>
+                        <option value="2.5">2.5x</option>
+                      </select>
+                      <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
+                        <option value="slide">Slide</option>
+                        <option value="fade">Fade</option>
+                        <option value="zoom">Zoom</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+                
+                {hasFinishedPlay && (
+                  <div className="ap-end-overlay">
+                    <h2 className="ap-end-title">Visualization Complete</h2>
+                    <div className="ap-end-actions">
+                      <button className="ap-end-btn ap-btn-home" onClick={() => {
+                        setHasFinishedPlay(false);
+                        setCurrentIndex(0);
+                        setFullscreen(false);
+                      }}>
+                        Close Fullscreen
+                      </button>
+                      <button className="ap-end-btn ap-btn-again" onClick={() => {
+                        setHasFinishedPlay(false);
+                        setCurrentIndex(0);
+                        setIsPlaying(true);
+                      }}>
+                        Play Again
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="no-results">
             <p>Failed to Connect The Server to load products...</p>

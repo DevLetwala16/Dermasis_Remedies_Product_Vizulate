@@ -25,7 +25,7 @@ const DEFAULT_PRODUCT = {
 function NewDoctorPage({ navigateTo, BACKEND_URL }) {
   const [form, setForm] = useState({
     name: '', phone: '', state: '', city: '',
-    subLocality: '', email: '', degreeType: '', specialization: '', grade: ''
+    subLocality: '', email: '', degreeType: '', specialization: '', grade: '', visitDay: ''
   });
   const [errors,  setErrors]  = useState({});
   const [loading, setLoading] = useState(false);
@@ -72,16 +72,16 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
     const e = {};
     if (!form.name.trim())        e.name        = 'Name is required';
     if (!form.phone.trim())       e.phone       = 'Phone is required';
-    else if (!/^\+?\d{7,15}$/.test(form.phone.replace(/\s/g,'')))
-                                  e.phone       = 'Enter a valid phone number';
+    else if (!/^\d{10}$/.test(form.phone.replace(/\s/g,'')))
+                                  e.phone       = 'Phone must be exactly 10 digits';
     if (!form.state.trim())       e.state       = 'State is required';
     if (!form.city.trim())        e.city        = 'City is required';
     if (!form.subLocality.trim()) e.subLocality = 'Sub locality is required';
     if (form.email && !/\S+@\S+\.\S+/.test(form.email))
                                   e.email       = 'Enter a valid email';
     if (!form.degreeType)         e.degreeType  = 'Degree type is required';
-    if (!form.grade || isNaN(Number(form.grade)) || Number(form.grade) < 1)
-                                  e.grade       = 'Grade must be a positive number';
+    if (!form.visitDay)           e.visitDay    = 'Visit day is required';
+    if (!form.grade)              e.grade       = 'Grade is required';
     return e;
   };
 
@@ -101,7 +101,7 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
       const res = await fetch(`${BACKEND_URL}/api/doctors`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ ...form, grade: Number(form.grade), defaultProduct: DEFAULT_PRODUCT }),
+        body:    JSON.stringify({ ...form, defaultProduct: DEFAULT_PRODUCT }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -225,12 +225,35 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
             {errors.specialization && <span className="nd-error">{errors.specialization}</span>}
           </div>
 
+          {/* Visit Day */}
+          <div className="nd-field">
+            <label htmlFor="nd-visitDay">Doctor Visit Day *</label>
+            <select id="nd-visitDay" name="visitDay" value={form.visitDay}
+              onChange={handleChange}
+              className={errors.visitDay ? 'nd-input nd-select nd-input-error' : 'nd-input nd-select'}>
+              <option value="">Select Visit Day…</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+            </select>
+            {errors.visitDay && <span className="nd-error">{errors.visitDay}</span>}
+          </div>
+
           {/* Grade */}
           <div className="nd-field">
-            <label htmlFor="nd-grade">Grade / Priority *</label>
-            <input id="nd-grade" name="grade" type="number" min="1"
-              placeholder="1 = highest" value={form.grade} onChange={handleChange}
-              className={errors.grade ? 'nd-input nd-input-error' : 'nd-input'} />
+            <label htmlFor="nd-grade">Grade *</label>
+            <select id="nd-grade" name="grade" value={form.grade}
+              onChange={handleChange}
+              className={errors.grade ? 'nd-input nd-select nd-input-error' : 'nd-input nd-select'}>
+              <option value="">Select Grade…</option>
+              <option value="A">Grade A</option>
+              <option value="B">Grade B</option>
+              <option value="C">Grade C</option>
+              <option value="D">Grade D</option>
+            </select>
             {errors.grade && <span className="nd-error">{errors.grade}</span>}
           </div>
 

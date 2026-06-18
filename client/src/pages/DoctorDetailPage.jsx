@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Search, Maximize2, Minimize2, X, UserCheck } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Search, Maximize2, Minimize2, X, UserCheck, Play, Pause, Settings } from 'lucide-react';
 
 const CLOUDINARY_BASE = 'https://res.cloudinary.com/dpsq08nun/image/upload';
 
@@ -22,7 +22,14 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
   const [fullscreen,   setFullscreen]   = useState(false);
   const [touchStart,   setTouchStart]   = useState(null);
   const [touchEnd,     setTouchEnd]     = useState(null);
-  const [imgAnim,      setImgAnim]      = useState('');  // 'slide-left' | 'slide-right'
+  const [imgAnim,      setImgAnim]      = useState('');
+
+  /* ── Auto-play states ── */
+  const [isPlaying,       setIsPlaying]       = useState(false);
+  const [playSpeed,       setPlaySpeed]       = useState(1);
+  const [animStyle,       setAnimStyle]       = useState('slide');
+  const [hasFinishedPlay, setHasFinishedPlay] = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
 
   const hoverTimer   = useRef(null);
   const searchRef    = useRef(null);
@@ -73,13 +80,40 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
 
   const goTo = (dir) => {
     if (products.length === 0) return;
-    setImgAnim(dir === 'next' ? 'slide-right' : 'slide-left');
+    
+    let animClass = '';
+    if (animStyle === 'slide') {
+      animClass = dir === 'next' ? 'slide-right' : 'slide-left';
+    } else if (animStyle === 'fade') {
+      animClass = 'fade-in';
+    } else if (animStyle === 'zoom') {
+      animClass = 'zoom-in';
+    }
+    
+    setImgAnim(animClass);
     setCurrentIdx(prev =>
       dir === 'next'
         ? (prev + 1) % products.length
         : (prev === 0 ? products.length - 1 : prev - 1)
     );
   };
+
+  /* ── Auto-play Effect ───────────────────────────────── */
+  useEffect(() => {
+    let timer;
+    if (isPlaying && !hasFinishedPlay) {
+      const delay = 2000 / playSpeed;
+      timer = setTimeout(() => {
+        if (currentIdx === products.length - 1) {
+          setIsPlaying(false);
+          setHasFinishedPlay(true);
+        } else {
+          goTo('next');
+        }
+      }, delay);
+    }
+    return () => clearTimeout(timer);
+  }, [currentIdx, isPlaying, playSpeed, products.length, hasFinishedPlay, animStyle]);
 
   const nextProduct = () => goTo('next');
   const prevProduct = () => goTo('prev');
@@ -137,11 +171,12 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onClick={() => setIsPlaying(!isPlaying)}
       ref={containerRef}
     >
       <button
-        className={`nav-arrow left dv-arrow${arrowVisible ? ' dv-arrow-visible' : ''}`}
-        onClick={prevProduct}
+        className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+        onClick={(e) => { e.stopPropagation(); prevProduct(); }}
         aria-label="Previous Product"
       >
         <ChevronLeft size={40} />
@@ -165,8 +200,8 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
       </div>
 
       <button
-        className={`nav-arrow right dv-arrow${arrowVisible ? ' dv-arrow-visible' : ''}`}
-        onClick={nextProduct}
+        className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+        onClick={(e) => { e.stopPropagation(); nextProduct(); }}
         aria-label="Next Product"
       >
         <ChevronRight size={40} />
@@ -189,7 +224,7 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
           <h2 className="dv-doc-name">{doctor.name}</h2>
           <p className="dv-doc-meta">{doctor.degreeType} · {doctor.city}</p>
         </div>
-        <span className="dp-grade-badge">Grade {doctor.grade}</span>
+        {doctor.visitDay && <span className="dp-grade-badge" style={{ background: '#e0e7ff', color: '#3730a3' }}>{doctor.visitDay}</span>}
       </div>
 
       {/* Product name */}
@@ -228,11 +263,63 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
       </div>
 
       {/* Visualizer + Expand button */}
-      <div className="dv-vis-container">
+      <div className="dv-vis-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {Visualizer}
         <button className="dv-expand-btn" onClick={() => setFullscreen(true)} title="Fullscreen">
           <Maximize2 size={20} />
         </button>
+
+        {/* Settings Toggle & Controls */}
+        <div className="ap-settings-container">
+          <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
+            <Settings size={18} /> Settings
+          </button>
+          
+          {showSettings && (
+            <div className="ap-controls">
+              <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)} title={isPlaying ? "Pause" : "Play"}>
+                {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+              </button>
+              <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
+                <option value="0.25">0.25x</option>
+                <option value="0.5">0.5x</option>
+                <option value="1">1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2x</option>
+                <option value="2.5">2.5x</option>
+              </select>
+              <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
+                <option value="slide">Slide</option>
+                <option value="fade">Fade</option>
+                <option value="zoom">Zoom</option>
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* End of Play Overlay */}
+        {hasFinishedPlay && (
+          <div className="ap-end-overlay">
+            <h2 className="ap-end-title">Visualization Complete</h2>
+            <div className="ap-end-actions">
+              <button className="ap-end-btn ap-btn-home" onClick={() => {
+                setHasFinishedPlay(false);
+                setCurrentIdx(0);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}>
+                Back to Start
+              </button>
+              <button className="ap-end-btn ap-btn-again" onClick={() => {
+                setHasFinishedPlay(false);
+                setCurrentIdx(0);
+                setIsPlaying(true);
+              }}>
+                Play Again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Fullscreen Overlay */}
@@ -249,9 +336,10 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
+            onClick={() => setIsPlaying(!isPlaying)}
           >
-            <button className={`nav-arrow left dv-arrow${arrowVisible ? ' dv-arrow-visible' : ''}`}
-              onClick={prevProduct} aria-label="Previous">
+            <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+              onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous">
               <ChevronLeft size={48} />
             </button>
             {currentProduct && (
@@ -262,11 +350,61 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
                 className={`dv-product-img dv-fs-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
               />
             )}
-            <button className={`nav-arrow right dv-arrow${arrowVisible ? ' dv-arrow-visible' : ''}`}
-              onClick={nextProduct} aria-label="Next">
+            <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+              onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next">
               <ChevronRight size={48} />
             </button>
           </div>
+
+          <div className="ap-settings-container" style={{ position: 'absolute', bottom: '2rem' }}>
+            <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
+              <Settings size={18} /> Settings
+            </button>
+            
+            {showSettings && (
+              <div className="ap-controls">
+                <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)}>
+                  {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                </button>
+                <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
+                  <option value="0.25">0.25x</option>
+                  <option value="0.5">0.5x</option>
+                  <option value="1">1x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2x</option>
+                  <option value="2.5">2.5x</option>
+                </select>
+                <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
+                  <option value="slide">Slide</option>
+                  <option value="fade">Fade</option>
+                  <option value="zoom">Zoom</option>
+                </select>
+              </div>
+            )}
+          </div>
+          
+          {hasFinishedPlay && (
+            <div className="ap-end-overlay">
+              <h2 className="ap-end-title">Visualization Complete</h2>
+              <div className="ap-end-actions">
+                <button className="ap-end-btn ap-btn-home" onClick={() => {
+                  setHasFinishedPlay(false);
+                  setCurrentIdx(0);
+                  setFullscreen(false);
+                }}>
+                  Close Fullscreen
+                </button>
+                <button className="ap-end-btn ap-btn-again" onClick={() => {
+                  setHasFinishedPlay(false);
+                  setCurrentIdx(0);
+                  setIsPlaying(true);
+                }}>
+                  Play Again
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

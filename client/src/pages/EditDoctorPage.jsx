@@ -233,9 +233,10 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
             <div className="ed-doctor-card-avatar">{selectedDoc.name.charAt(0)}</div>
             <div className="ed-doctor-card-info">
               <h4>{selectedDoc.name}</h4>
-              <p>{selectedDoc.degreeType} · Grade {selectedDoc.grade}</p>
+              <p>{selectedDoc.degreeType}{selectedDoc.specialization ? ` (${selectedDoc.specialization})` : ''} · Grade {selectedDoc.grade}</p>
               <p>📍 {selectedDoc.city}, {selectedDoc.state}</p>
               <p>📞 {selectedDoc.phone}</p>
+              <p>🗓️ Visit Day: {selectedDoc.visitDay || 'Not specified'}</p>
               {selectedDoc.email && <p>✉️ {selectedDoc.email}</p>}
             </div>
           </div>

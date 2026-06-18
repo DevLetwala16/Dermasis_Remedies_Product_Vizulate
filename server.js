@@ -46,7 +46,8 @@ const DoctorSchema = new mongoose.Schema({
   email:         { type: String, default: '' },
   degreeType:    { type: String, required: true },
   specialization:{ type: String, default: true },
-  grade:         { type: Number, required: true },
+  grade:         { type: String, required: true },
+  visitDay:      { type: String, default: '' },
   products:      { type: [DoctorProductSchema], default: [] },
 }, { collection: 'Doctor_List' });
 
@@ -117,7 +118,7 @@ app.get('/api/doctors/:id', async (req, res) => {
 // POST /api/doctors          — create new doctor
 app.post('/api/doctors', async (req, res) => {
   try {
-    const { name, phone, state, city, subLocality, email, degreeType, specialization, grade, defaultProduct } = req.body;
+    const { name, phone, state, city, subLocality, email, degreeType, specialization, grade, visitDay, defaultProduct } = req.body;
 
     const products = [];
     if (defaultProduct && defaultProduct.id && defaultProduct.name && defaultProduct.link) {
@@ -128,7 +129,7 @@ app.post('/api/doctors', async (req, res) => {
       });
     }
 
-    const doctor = new Doctor({ name, phone, state, city, subLocality, email: email || '', degreeType, specialization: specialization || '', grade, products });
+    const doctor = new Doctor({ name, phone, state, city, subLocality, email: email || '', degreeType, specialization: specialization || '', grade, visitDay: visitDay || '', products });
     await doctor.save();
     res.status(201).json(doctor);
   } catch (err) {
