@@ -137,6 +137,22 @@ app.post('/api/doctors', async (req, res) => {
   }
 });
 
+// PUT /api/doctors/:id  — update doctor profile fields
+app.put('/api/doctors/:id', async (req, res) => {
+  try {
+    const { name, phone, state, city, subLocality, email, degreeType, specialization, grade, visitDay } = req.body;
+    const doctor = await Doctor.findByIdAndUpdate(
+      req.params.id,
+      { name, phone, state, city, subLocality, email, degreeType, specialization, grade, visitDay },
+      { new: true, runValidators: true }
+    );
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+    res.status(200).json(doctor);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // DELETE /api/doctors/:id    — delete a doctor entirely
 app.delete('/api/doctors/:id', async (req, res) => {
   try {

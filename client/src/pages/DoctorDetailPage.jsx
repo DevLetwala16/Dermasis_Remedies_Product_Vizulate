@@ -299,7 +299,7 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
         </div>
 
         {/* End of Play Overlay */}
-        {hasFinishedPlay && (
+        {hasFinishedPlay && !fullscreen && (
           <div className="ap-end-overlay">
             <h2 className="ap-end-title">Visualization Complete</h2>
             <div className="ap-end-actions">
@@ -356,7 +356,7 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
             </button>
           </div>
 
-          <div className="ap-settings-container" style={{ position: 'absolute', bottom: '2rem' }}>
+          <div className="ap-settings-container" style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 30, width: 'auto', alignItems: 'flex-start' }}>
             <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
               <Settings size={18} /> Settings
             </button>

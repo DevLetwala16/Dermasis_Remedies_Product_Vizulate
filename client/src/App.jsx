@@ -5,6 +5,7 @@ import DoctorsPage      from './pages/DoctorsPage.jsx';
 import NewDoctorPage    from './pages/NewDoctorPage.jsx';
 import DeleteDoctorPage from './pages/DeleteDoctorPage.jsx';
 import EditDoctorPage   from './pages/EditDoctorPage.jsx';
+import EditDoctorInfoPage from './pages/EditDoctorInfoPage.jsx';
 import DoctorDetailPage from './pages/DoctorDetailPage.jsx';
 
 // ── Cloudinary helpers ───────────────────────────────────────────────────────
@@ -298,6 +299,18 @@ function App() {
     );
   }
 
+  if (page === 'edit-doctor-info') {
+    return (
+      <div className="app-container">
+        {Header}
+        <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
+          <EditDoctorInfoPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (page === 'doctor-detail') {
     return (
       <div className="app-container">
@@ -414,7 +427,7 @@ function App() {
             </div>
 
             {/* End of Play Overlay */}
-            {hasFinishedPlay && (
+            {hasFinishedPlay && !fullscreen && (
               <div className="ap-end-overlay">
                 <h2 className="ap-end-title">Visualization Complete</h2>
                 <div className="ap-end-actions">
@@ -442,7 +455,7 @@ function App() {
                 <button className="dv-fs-close" onClick={() => setFullscreen(false)}>
                   <X size={28} />
                 </button>
-                <div className="dv-fs-name">{currentProduct?.name}</div>
+                {/* <div className="dv-fs-name">{currentProduct?.name}</div> */}
                 <div className="dv-fs-counter">{currentIndex + 1} / {products.length}</div>
 
                 <div className="dv-visualizer-wrap dv-fs-vis"
@@ -472,7 +485,7 @@ function App() {
                   </button>
                 </div>
 
-                <div className="ap-settings-container" style={{ position: 'absolute', bottom: '2rem' }}>
+                <div className="ap-settings-container" style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 30, width: 'auto', alignItems: 'flex-start' }}>
                   <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
                     <Settings size={18} /> Settings
                   </button>
