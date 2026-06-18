@@ -181,6 +181,25 @@ app.delete('/api/doctors/:id/products/:productId', async (req, res) => {
   }
 });
 
+// PUT /api/doctors/:id/products/reorder  — reorder linked products
+app.put('/api/doctors/:id/products/reorder', async (req, res) => {
+  try {
+    const { products } = req.body;
+    if (!Array.isArray(products)) return res.status(400).json({ error: 'products must be an array' });
+
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ error: 'Doctor not found' });
+
+    doctor.products = [];
+    products.forEach(p => doctor.products.push({ id: p.id, name: p.name, link: p.link }));
+    doctor.markModified('products');
+    await doctor.save();
+    res.status(200).json(doctor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Health Check ────────────────────────────────────────────────────────────
 
 app.get('/', (req, res) => {

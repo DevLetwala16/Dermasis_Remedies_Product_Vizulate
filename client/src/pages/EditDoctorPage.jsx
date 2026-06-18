@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Edit3, Search, Download, Plus, Trash2, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Edit3, Search, Download, Plus, Trash2, Save, CheckCircle, GripVertical } from 'lucide-react';
 
 function EditDoctorPage({ navigateTo, BACKEND_URL }) {
   /* ── State ─────────────────────────────────────────────────── */
@@ -24,6 +24,8 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
 
   const sugRef = useRef(null);
   const prodSugRef = useRef(null);
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
 
   /* ── Fetch doctors & products on mount ─────────────────────── */
   useEffect(() => {
@@ -152,6 +154,39 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
       console.error(err);
     } finally {
       setRemoving('');
+    }
+  };
+
+  /* ── Reorder products (Drag & Drop) ─────────────────────────── */
+  const handleSort = async () => {
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) {
+      dragItem.current = null;
+      dragOverItem.current = null;
+      return;
+    }
+
+    const _docProducts = [...docProducts];
+    const draggedItem = _docProducts.splice(dragItem.current, 1)[0];
+    _docProducts.splice(dragOverItem.current, 0, draggedItem);
+
+    dragItem.current = null;
+    dragOverItem.current = null;
+    setDocProducts(_docProducts);
+
+    // Persist to backend
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/doctors/${selectedDoc._id}/products/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products: _docProducts }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        console.error('Reorder save failed:', errData.error);
+      }
+    } catch (err) {
+      console.error('Failed to save new order', err);
     }
   };
 
@@ -296,17 +331,29 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
               <p className="ed-empty-products">No products linked yet. Add one above.</p>
             ) : (
               <div className="ed-product-list">
-                {docProducts.map(prod => (
-                  <div key={prod.id} className="ed-product-item">
+                {docProducts.map((prod, index) => (
+                  <div
+                    key={prod.id}
+                    className="ed-product-item"
+                    draggable
+                    onDragStart={() => (dragItem.current = index)}
+                    onDragEnter={() => (dragOverItem.current = index)}
+                    onDragEnd={handleSort}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    <div className="ed-drag-handle" title="Drag to reorder">
+                      <GripVertical size={20} />
+                    </div>
                     <img
                       src={prod.link}
                       alt={prod.name}
                       className="ed-product-thumb"
                       loading="lazy"
+                      style={{ pointerEvents: 'none' }}
                     />
                     <div className="ed-product-details">
                       <p className="ed-product-name">{prod.name}</p>
-                      <p className="ed-product-id" title={prod.id}>ID: {prod.id.slice(0,12)}…</p> 
+                      <p className="ed-product-id" title={prod.id}>ID: {prod.id.slice(0,12)}…</p>
                     </div>
                     <button
                       className="ed-remove-btn"
