@@ -71,18 +71,14 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  /* ── Navigate with animation ───────────────────────────────── */
   const goTo = (dir) => {
     if (products.length === 0) return;
-    setImgAnim(dir === 'next' ? 'slide-left' : 'slide-right');
-    setTimeout(() => {
-      setCurrentIdx(prev =>
-        dir === 'next'
-          ? (prev + 1) % products.length
-          : (prev === 0 ? products.length - 1 : prev - 1)
-      );
-      setImgAnim('');
-    }, 200);
+    setImgAnim(dir === 'next' ? 'slide-right' : 'slide-left');
+    setCurrentIdx(prev =>
+      dir === 'next'
+        ? (prev + 1) % products.length
+        : (prev === 0 ? products.length - 1 : prev - 1)
+    );
   };
 
   const nextProduct = () => goTo('next');
@@ -245,7 +241,7 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
           <button className="dv-fs-close" onClick={() => setFullscreen(false)}>
             <X size={28} />
           </button>
-          <div className="dv-fs-name">{currentProduct?.name}</div>
+          {/* <div className="dv-fs-name">{currentProduct?.name}</div> */}
           <div className="dv-fs-counter">{currentIdx + 1} / {products.length}</div>
 
           <div className="dv-visualizer-wrap dv-fs-vis"
