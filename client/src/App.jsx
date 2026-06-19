@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users, Maximize2, X, Play, Pause, Settings } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users, Maximize2, X, Play, Pause, Settings, Menu } from 'lucide-react';
 import './index.css';
 import DoctorsPage      from './pages/DoctorsPage.jsx';
 import NewDoctorPage    from './pages/NewDoctorPage.jsx';
@@ -60,11 +60,15 @@ function App() {
 
   const searchRef = useRef(null);
 
+  // ── Mobile Menu State ──────────────────────────────
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   // ── Navigate helper ──────────────────────────────────
   const navigateTo = (targetPage, params = {}) => {
     setPage(targetPage);
     setRouteParams(params);
     setDocDropOpen(false);
+    setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -200,18 +204,27 @@ function App() {
   // ── Shared Header ────────────────────────────────────
   const Header = (
     <header className="header">
-      <div className="header-brand">
-        <img src={LOGO_URL} alt="Dermasis Logo" className="header-logo" width="80" height="80" />
-        <div className="brand-container pharma-layout">
-          <h1 className="brand-name">DERMASIS</h1>
-          <div className="divider" />
-          <span className="brand-suffix">REMEDIES PVT. LTD.</span>
+      <div className="header-top">
+        <div className="header-brand">
+          <img src={LOGO_URL} alt="Dermasis Logo" className="header-logo" width="80" height="80" />
+          <div className="brand-container pharma-layout">
+            <h1 className="brand-name">DERMASIS</h1>
+            <div className="divider" />
+            <span className="brand-suffix">REMEDIES PVT. LTD.</span>
+          </div>
         </div>
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle Navigation"
+        >
+          {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
       </div>
 
-      <nav className="header-nav">
+      <nav className={`header-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <a href="#visualizer" className="nav-link" onClick={() => navigateTo('home')}>
-          Product Visualizer
+          Home
         </a>
         
 
