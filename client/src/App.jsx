@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users, Maximize2, X, Play, Pause, Settings, Menu } from 'lucide-react';
 import './index.css';
-import DoctorsPage      from './pages/DoctorsPage.jsx';
-import NewDoctorPage    from './pages/NewDoctorPage.jsx';
-import DeleteDoctorPage from './pages/DeleteDoctorPage.jsx';
-import EditDoctorPage   from './pages/EditDoctorPage.jsx';
-import EditDoctorInfoPage from './pages/EditDoctorInfoPage.jsx';
-import DoctorDetailPage from './pages/DoctorDetailPage.jsx';
+const DoctorsPage = React.lazy(() => import('./pages/DoctorsPage.jsx'));
+const NewDoctorPage = React.lazy(() => import('./pages/NewDoctorPage.jsx'));
+const DeleteDoctorPage = React.lazy(() => import('./pages/DeleteDoctorPage.jsx'));
+const EditDoctorPage = React.lazy(() => import('./pages/EditDoctorPage.jsx'));
+const EditDoctorInfoPage = React.lazy(() => import('./pages/EditDoctorInfoPage.jsx'));
+const DoctorDetailPage = React.lazy(() => import('./pages/DoctorDetailPage.jsx'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage.jsx'));
 
 // ── Cloudinary helpers ───────────────────────────────────────────────────────
 const CLOUDINARY_BASE = "https://res.cloudinary.com/dpsq08nun/image/upload";
@@ -48,7 +49,15 @@ function App() {
   const [hasFinishedPlay, setHasFinishedPlay] = useState(false);
   const [arrowVisible,    setArrowVisible]    = useState(false);
   const [showSettings,    setShowSettings]    = useState(false);
+  
+  const [loopMode,        setLoopMode]        = useState('finite'); // 'finite' or 'infinite'
+  const [loopCount,       setLoopCount]       = useState(1);
+  const [currentLoopIteration, setCurrentLoopIteration] = useState(0);
+  const [autoPlayStartedManually, setAutoPlayStartedManually] = useState(false);
+  const [touchIndicator,  setTouchIndicator]  = useState(null); // 'play' or 'pause'
+  
   const hoverTimer = useRef(null);
+  const indicatorTimer = useRef(null);
 
   /* ── Routing state ──────────────────────────────────── */
   const [page,       setPage]       = useState('home');  // 'home'|'doctors'|'new-doctor'|'delete-doctor'|'edit-doctor'|'doctor-detail'
@@ -82,7 +91,7 @@ function App() {
           setProducts(data);
           data.forEach(product => {
             const img = new Image();
-            img.src = clImg(product.link, 900);
+            img.src = clImg(product.link, 730);
           });
         }
       } catch (error) {
@@ -141,6 +150,14 @@ function App() {
       animClass = 'fade-in';
     } else if (animStyle === 'zoom') {
       animClass = 'zoom-in';
+    } else if (animStyle === 'flip') {
+      animClass = 'flip-in';
+    } else if (animStyle === 'rotate') {
+      animClass = 'rotate-in';
+    } else if (animStyle === 'bounce') {
+      animClass = 'bounce-in';
+    } else if (animStyle === 'blur') {
+      animClass = 'blur-in';
     }
     
     setImgAnim(animClass);
@@ -167,15 +184,55 @@ function App() {
       const delay = 2000 / playSpeed;
       timer = setTimeout(() => {
         if (currentIndex === products.length - 1) {
-          setIsPlaying(false);
-          setHasFinishedPlay(true);
+          if (loopMode === 'infinite') {
+            goTo('next');
+          } else {
+            const nextIteration = currentLoopIteration + 1;
+            if (nextIteration >= loopCount) {
+              setIsPlaying(false);
+              setHasFinishedPlay(true);
+              setCurrentLoopIteration(0); // auto reset for next play
+            } else {
+              setCurrentLoopIteration(nextIteration);
+              goTo('next');
+            }
+          }
         } else {
           goTo('next');
         }
       }, delay);
     }
     return () => clearTimeout(timer);
-  }, [currentIndex, isPlaying, playSpeed, products.length, hasFinishedPlay, animStyle]);
+  }, [currentIndex, isPlaying, playSpeed, products.length, hasFinishedPlay, animStyle, loopMode, loopCount, currentLoopIteration]);
+
+  // ── Touch Control Handler ────────────────────────────
+  const handleVisualizerClick = (e) => {
+    if (autoPlayStartedManually) {
+      const newIsPlaying = !isPlaying;
+      setIsPlaying(newIsPlaying);
+      setTouchIndicator(newIsPlaying ? 'play' : 'pause');
+      clearTimeout(indicatorTimer.current);
+      indicatorTimer.current = setTimeout(() => setTouchIndicator(null), 800);
+      
+      // If it was finished and they click the visualizer to play again
+      if (newIsPlaying && hasFinishedPlay) {
+        setHasFinishedPlay(false);
+        setCurrentIndex(0);
+        setCurrentLoopIteration(0);
+      }
+    }
+  };
+
+  const startAutoPlayManually = () => {
+    setAutoPlayStartedManually(true);
+    const willPlay = !isPlaying;
+    setIsPlaying(willPlay);
+    if (willPlay && hasFinishedPlay) {
+      setHasFinishedPlay(false);
+      setCurrentIndex(0);
+      setCurrentLoopIteration(0);
+    }
+  };
 
   // ── Swipe handlers ───────────────────────────────────
   const minSwipeDistance = 50;
@@ -228,8 +285,7 @@ function App() {
         </a>
         
 
-        {/* ── Doctors Dropdown ── */}
-        <div className="nav-dropdown" ref={dropRef}>
+          <div className="nav-dropdown" ref={dropRef}>
           <button
             className="nav-link nav-dropdown-trigger"
             onClick={() => setDocDropOpen(o => !o)}
@@ -258,18 +314,27 @@ function App() {
             </div>
           )}
         </div>
-        <a href="#contact" className="nav-link">Contact</a>
+        <button onClick={() => navigateTo('contact')} className="nav-link">Contact</button>
       </nav>
     </header>
   );
 
-  // ── Route: Doctor pages ──────────────────────────────
+  const SuspenseFallback = (
+    <div className="dp-loading" style={{ minHeight: '60vh' }}>
+      <div className="dp-spinner" />
+      <p>Loading module...</p>
+    </div>
+  );
+
+  // ── Route: Doctor pages & Contact ──────────────────────────────
   if (page === 'doctors') {
     return (
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <DoctorsPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <DoctorsPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -281,7 +346,9 @@ function App() {
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <NewDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <NewDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -293,7 +360,9 @@ function App() {
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <DeleteDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <DeleteDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -305,7 +374,9 @@ function App() {
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <EditDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <EditDoctorPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -317,7 +388,9 @@ function App() {
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <EditDoctorInfoPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <EditDoctorInfoPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -329,7 +402,23 @@ function App() {
       <div className="app-container">
         {Header}
         <main className="main-content" style={{ alignItems: 'stretch', padding: '2rem 4rem' }}>
-          <DoctorDetailPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} doctorId={routeParams.doctorId} />
+          <React.Suspense fallback={SuspenseFallback}>
+            <DoctorDetailPage navigateTo={navigateTo} BACKEND_URL={BACKEND_URL} doctorId={routeParams.doctorId} />
+          </React.Suspense>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (page === 'contact') {
+    return (
+      <div className="app-container">
+        {Header}
+        <main className="main-content" style={{ alignItems: 'stretch', padding: '0' }}>
+          <React.Suspense fallback={SuspenseFallback}>
+            <ContactPage navigateTo={navigateTo} />
+          </React.Suspense>
         </main>
         <Footer />
       </div>
@@ -382,8 +471,13 @@ function App() {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={handleVisualizerClick}
             >
+              {touchIndicator && (
+                <div className="ap-touch-indicator">
+                  {touchIndicator === 'play' ? <Play size={64} fill="white" /> : <Pause size={64} fill="white" />}
+                </div>
+              )}
               <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
                 onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous Product">
                 <ChevronLeft size={40} />
@@ -392,11 +486,11 @@ function App() {
               <div className="product-image-wrapper dv-img-frame">
                 <img
                   key={currentProduct?._id || currentProduct?.id}
-                  src={clImg(currentProduct?.link, 900)}
+                  src={clImg(currentProduct?.link, 730)}
                   alt={currentProduct?.name}
                   className={`product-image dv-product-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
-                  width="900"
-                  height="900"
+                  width="730"
+                  height="730"
                 />
               </div>
 
@@ -406,7 +500,14 @@ function App() {
               </button>
             </div>
             
-            <button className="dv-expand-btn" onClick={() => setFullscreen(true)} title="Fullscreen">
+            <button className="dv-expand-btn" onClick={() => {
+              setFullscreen(true);
+              // Preload next 2 images using exact same resolution to utilize cache instantly
+              const next1 = products[(currentIndex + 1) % products.length];
+              const next2 = products[(currentIndex + 2) % products.length];
+              if (next1) { const img = new Image(); img.src = clImg(next1.link, 730); }
+              if (next2) { const img = new Image(); img.src = clImg(next2.link, 730); }
+            }} title="Fullscreen">
               <Maximize2 size={20} />
             </button>
 
@@ -418,7 +519,7 @@ function App() {
               
               {showSettings && (
                 <div className="ap-controls">
-                  <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)} title={isPlaying ? "Pause" : "Play"}>
+                  <button className="ap-btn" onClick={startAutoPlayManually} title={isPlaying ? "Pause" : "Play"}>
                     {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                   </button>
                   <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
@@ -434,7 +535,31 @@ function App() {
                     <option value="slide">Slide</option>
                     <option value="fade">Fade</option>
                     <option value="zoom">Zoom</option>
+                    <option value="flip">Flip</option>
+                    <option value="rotate">Rotate</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="blur">Blur</option>
                   </select>
+                  <select className="ap-select" value={loopMode} onChange={(e) => {
+                    setLoopMode(e.target.value);
+                    setCurrentLoopIteration(0);
+                  }}>
+                    <option value="finite">Finite Loop</option>
+                    <option value="infinite">Infinite Loop</option>
+                  </select>
+                  {loopMode === 'finite' && (
+                    <select className="ap-select" value={loopCount} onChange={(e) => {
+                      setLoopCount(Number(e.target.value));
+                      setCurrentLoopIteration(0); // Reset progress when changing count
+                    }}>
+                      <option value={1}>1 Time</option>
+                      <option value={2}>2 Times</option>
+                      <option value={3}>3 Times</option>
+                      <option value={4}>4 Times</option>
+                      <option value={5}>5 Times</option>
+                      <option value={10}>10 Times</option>
+                    </select>
+                  )}
                 </div>
               )}
             </div>
@@ -476,8 +601,13 @@ function App() {
                   onTouchStart={onTouchStart}
                   onTouchMove={onTouchMove}
                   onTouchEnd={onTouchEnd}
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  onClick={handleVisualizerClick}
                 >
+                  {touchIndicator && (
+                    <div className="ap-touch-indicator">
+                      {touchIndicator === 'play' ? <Play size={64} fill="white" /> : <Pause size={64} fill="white" />}
+                    </div>
+                  )}
                   <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
                     onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous">
                     <ChevronLeft size={48} />
@@ -500,12 +630,12 @@ function App() {
 
                 <div className="ap-settings-container" style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 30, width: 'auto', alignItems: 'flex-start' }}>
                   <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
-                    <Settings size={18} /> Settings
+                    <Settings size={18} />
                   </button>
                   
                   {showSettings && (
                     <div className="ap-controls">
-                      <button className="ap-btn" onClick={() => setIsPlaying(!isPlaying)}>
+                      <button className="ap-btn" onClick={startAutoPlayManually}>
                         {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                       </button>
                       <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
@@ -521,7 +651,31 @@ function App() {
                         <option value="slide">Slide</option>
                         <option value="fade">Fade</option>
                         <option value="zoom">Zoom</option>
+                        <option value="flip">Flip</option>
+                        <option value="rotate">Rotate</option>
+                        <option value="bounce">Bounce</option>
+                        <option value="blur">Blur</option>
                       </select>
+                      <select className="ap-select" value={loopMode} onChange={(e) => {
+                        setLoopMode(e.target.value);
+                        setCurrentLoopIteration(0);
+                      }}>
+                        <option value="finite">Finite Loop</option>
+                        <option value="infinite">Infinite Loop</option>
+                      </select>
+                      {loopMode === 'finite' && (
+                        <select className="ap-select" value={loopCount} onChange={(e) => {
+                          setLoopCount(Number(e.target.value));
+                          setCurrentLoopIteration(0);
+                        }}>
+                          <option value={1}>1 Time</option>
+                          <option value={2}>2 Times</option>
+                          <option value={3}>3 Times</option>
+                          <option value={4}>4 Times</option>
+                          <option value={5}>5 Times</option>
+                          <option value={10}>10 Times</option>
+                        </select>
+                      )}
                     </div>
                   )}
                 </div>
@@ -568,30 +722,17 @@ const LOGO_URL_FOOTER = `${CLOUDINARY_BASE}/f_auto,q_auto,w_300/v1777359495/IMG-
 function Footer() {
   return (
     <footer className="footer" id="contact">
-      <div className="footer-content">
-        <div className="footer-section">
+      <div className="footer-content" style={{ paddingBottom: '0', borderBottom: 'none', justifyContent: 'center' }}>
+        <div className="footer-section" style={{ textAlign: 'center' }}>
           <img src={LOGO_URL_FOOTER} alt="Dermasis Logo" className="footer-logo"
-            width="80" height="80" loading="lazy" />
-          <p className="footer-text" style={{ marginTop: '1rem' }}>
-            DERMASIS REMEDIES Pvt. Ltd. <br />
-            Professional Pharmaceutical Product Visualizer.
+            width="80" height="80" loading="lazy" style={{ margin: '0 auto 1rem' }} />
+          <p className="footer-text" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+            DERMASIS REMEDIES Pvt. Ltd.
           </p>
-        </div>
-
-        <div className="footer-section">
-          <h3 className="footer-title">Contact Us</h3>
-          <p className="footer-text"><Mail size={18} /> dermasisremedies@gmail.com</p>
-          <p className="footer-text"><Phone size={18} /> +91 99749 07955</p>
-        </div>
-
-        <div className="footer-section">
-          <h3 className="footer-title">Headquarters</h3>
-          <p className="footer-text"><MapPin size={18} /> 218, Crystal Plaza,</p>
-          <p className="footer-text" style={{ marginLeft: "26px" }}>SRT, Gujarat, India, 395010</p>
         </div>
       </div>
 
-      <div className="footer-bottom">
+      <div className="footer-bottom" style={{ paddingTop: '1rem' }}>
         <p>&copy; {new Date().getFullYear()} Dermasis Remedies Pvt. Ltd. All rights reserved.</p>
         <p style={{ marginTop: '0.5rem', color: 'var(--color-secondary)' }}>
           Powered by Softcapphyjas Pvt. Ltd.
