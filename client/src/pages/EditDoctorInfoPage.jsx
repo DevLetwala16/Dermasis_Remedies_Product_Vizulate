@@ -234,7 +234,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
           {showSug && suggestions.length > 0 && (
             <div className="ed-suggestions">
               {suggestions.map(doc => (
-                <div key={doc._id} className="ed-suggestion-item" onClick={() => selectDoctor(doc)}>
+                <div key={doc._id} className="ed-suggestion-item" onMouseDown={(e) => { e.preventDefault(); selectDoctor(doc); }}>
                   <div className="ed-sug-avatar">{doc.name.charAt(0)}</div>
                   <div>
                     <p className="ed-sug-name">{doc.name}</p>
@@ -272,7 +272,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
                 {showStateSug && indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).length > 0 && (
                   <div className="ed-suggestions">
                     {indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).map(s => (
-                      <div key={s} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, state: s})); setShowStateSug(false); setErrors(er => ({...er, state: undefined})); }}>
+                      <div key={s} className="ed-suggestion-item" onMouseDown={(e) => { e.preventDefault(); setForm(f => ({...f, state: s})); setShowStateSug(false); setErrors(er => ({...er, state: undefined})); }}>
                         <span className="ed-sug-name">{s}</span>
                       </div>
                     ))}
@@ -293,7 +293,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
                 {showCitySug && indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).length > 0 && (
                   <div className="ed-suggestions">
                     {indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).slice(0, 50).map(c => (
-                      <div key={c} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, city: c})); setShowCitySug(false); setErrors(er => ({...er, city: undefined})); }}>
+                      <div key={c} className="ed-suggestion-item" onMouseDown={(e) => { e.preventDefault(); setForm(f => ({...f, city: c})); setShowCitySug(false); setErrors(er => ({...er, city: undefined})); }}>
                         <span className="ed-sug-name">{c}</span>
                       </div>
                     ))}
