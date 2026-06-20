@@ -938,7 +938,7 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   /* Doctor pages responsive */
   .nd-form-grid { grid-template-columns: 1fr; }
   .nd-field-full { grid-column: 1; }
-  .dp-page-header { flex-direction: column; align-items: flex-start; }
+  .dp-page-header { flex-direction: row; align-items: center; justify-content: space-between; }
   .dp-action-row  { flex-wrap: wrap; }
   .ed-add-product-row { flex-direction: column; }
   .ed-save-section    { flex-direction: column; align-items: flex-start; }
@@ -1178,7 +1178,7 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 0.5rem;
+  padding: 1rem;
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -1186,6 +1186,7 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   animation: dropdownFadeIn 0.2s ease-out;
   transform-origin: top right;
+  margin-top: 10px;
 }
 
 @keyframes dropdownFadeIn {
@@ -1243,4 +1244,4 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   height: 1px;
   background: #f1f5f9;
   margin: 0.25rem 0;
-}
+}
