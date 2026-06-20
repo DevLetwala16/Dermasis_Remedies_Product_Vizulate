@@ -804,7 +804,7 @@ function Footer() {
       <div className="footer-bottom" style={{ paddingTop: '0.5rem' }}>
         <p>&copy; {new Date().getFullYear()} Dermasis Remedies Pvt. Ltd. All rights reserved.</p>
         <p style={{ marginTop: '0.5rem', color: '#4ade80' }}>
-          Powered by Softcapphyjas Pvt. Ltd. Dev_Letwala
+          Powered by Softcapphyjas Pvt. Ltd.
         </p>
       </div>
     </footer>
