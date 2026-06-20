@@ -223,17 +223,20 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
 /* ====================================
    FOOTER
 ==================================== */
-.footer { background: #ffffff; padding: 4rem 4rem 2rem; border-top: 1px solid rgba(0,0,0,0.05); }
+.footer { background: #0f172a; padding: 1rem 2rem 1rem; border-top: 1px solid rgba(255,255,255,0.08); }
 .footer-content {
-  display: flex; justify-content: space-between; flex-wrap: wrap;
-  gap: 3rem; max-width: 1200px; margin: 0 auto;
-  border-bottom: 1px solid #f1f5f9; padding-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .footer-section { flex: 1; min-width: 250px; }
-.footer-logo    { height: 40px; object-fit: contain; margin-bottom: 1rem; }
-.footer-title   { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--color-text); text-transform: uppercase; letter-spacing: 1px; }
-.footer-text    { margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.8rem; font-size: 0.95rem; color: var(--color-text); }
-.footer-bottom  { text-align: center; padding-top: 2rem; font-size: 0.9rem; color: var(--color-text); }
+.footer-logo    { height: 50px; object-fit: contain; margin-bottom: 0.5rem; }
+.footer-title   { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #f8fafc; text-transform: uppercase; letter-spacing: 1px; }
+.footer-text    { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #f8fafc; }
+.footer-bottom  { text-align: center; padding-top: 1rem; font-size: 0.8rem; color: #e2e8f0; }
+.footer-bottom p { color: #e2e8f0; }
 
 /* ====================================
    BRAND / PHARMA LAYOUT
@@ -423,6 +426,9 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   font-size: 0.95rem; font-weight: 600; color: #64748b; transition: all 0.2s;
 }
 .nd-cancel-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+.dp-btn-view:hover { background: rgba(56,189,248,0.2); border-color: rgba(56,189,248,0.5); }
+.dp-btn-menu:hover { background: rgba(255,255,255,0.1) !important; }
+.dp-dropdown-item:hover { background: rgba(255,255,255,0.08) !important; }
 .nd-submit-btn {
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.85rem 2rem; border-radius: 10px; border: none;
@@ -925,8 +931,8 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   .nav-arrow    { width: 45px; height: 45px; background: rgba(255,255,255,0.4); border-radius: 50%; }
   .nav-arrow.left  { left:  0.5rem; }
   .nav-arrow.right { right: 0.5rem; }
-  .footer  { padding: 3rem 1.5rem 1.5rem; }
-  .footer-content { flex-direction: column; align-items: center; text-align: center; gap: 2.5rem; }
+  .footer  { padding: 1.5rem 1rem 1rem; }
+  .footer-content { flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
   .footer-text { justify-content: center; }
   .search-wrapper { margin-bottom: 2rem; }
   /* Doctor pages responsive */
@@ -994,6 +1000,10 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
   padding: 4rem 2rem;
   text-align: center;
   position: relative;
+  border-radius: 2cap;
+  margin-right: 2%;
+  margin-left: 2%;
+  margin-top: 2%;
 }
 .cp-back {
   position: absolute;
@@ -1074,4 +1084,58 @@ body::after  { bottom: -20vw; right: -10vw; background: rgba(34, 197, 94, 0.3); 
 }
 .cp-link:hover {
   color: var(--color-secondary);
+}
+
+/* ====================================
+   SKELETON LOADER
+==================================== */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.skeleton {
+  background: #f6f7f8;
+  background-image: linear-gradient(
+    90deg,
+    #f6f7f8 0px,
+    #edeef1 50%,
+    #f6f7f8 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background: var(--color-card-bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.skeleton-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+}
+.skeleton-text {
+  height: 1rem;
+  border-radius: 4px;
+}
+.skeleton-text.short { width: 60%; }
+.skeleton-text.medium { width: 80%; }
+.skeleton-text.long { width: 100%; }
+
+/* ====================================
+   SMOOTH IMAGE TRANSITIONS
+==================================== */
+.dv-product-img {
+  transition: opacity 0.2s ease-out;
+}
+.dv-img-loading {
+  opacity: 0;
+}
+.dv-img-loaded {
+  opacity: 1;
 }

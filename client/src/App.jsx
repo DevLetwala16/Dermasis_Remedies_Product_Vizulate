@@ -33,12 +33,18 @@ const API_URL = `${BACKEND_URL}/api/vizulate-products`;
 function App() {
   /* ── Home-page state ────────────────────────────────── */
   const [loading,         setLoading]         = useState(true);
+  const [showSplash,      setShowSplash]      = useState(true);
   const [products,        setProducts]        = useState([]);
   const [searchQuery,     setSearchQuery]     = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentIndex,    setCurrentIndex]    = useState(0);
   const [touchStart,      setTouchStart]      = useState(null);
   const [touchEnd,        setTouchEnd]        = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   /* ── New Feature state ──────────────────────────────── */
   const [fullscreen,      setFullscreen]      = useState(false);
@@ -72,13 +78,43 @@ function App() {
   // ── Mobile Menu State ──────────────────────────────
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // ── Browser History Integration ──────────────────────
+  useEffect(() => {
+    // Initialize current state in history
+    window.history.replaceState({ page: 'home', params: {} }, '');
+
+    const handlePopState = (event) => {
+      if (event.state && event.state.page) {
+        setPage(event.state.page);
+        setRouteParams(event.state.params || {});
+      } else {
+        setPage('home');
+        setRouteParams({});
+      }
+      setDocDropOpen(false);
+      setMobileMenuOpen(false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // ── Navigate helper ──────────────────────────────────
   const navigateTo = (targetPage, params = {}) => {
+    // Prevent duplicate history entries for same route
+    if (page === targetPage && JSON.stringify(routeParams) === JSON.stringify(params)) {
+      setDocDropOpen(false);
+      setMobileMenuOpen(false);
+      return;
+    }
+
     setPage(targetPage);
     setRouteParams(params);
     setDocDropOpen(false);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    window.history.pushState({ page: targetPage, params }, '');
   };
 
   // ── Fetch main products ──────────────────────────────
@@ -89,15 +125,25 @@ function App() {
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
-          data.forEach(product => {
+          // Preload first 5 images immediately, rest lazily
+          data.slice(0, 5).forEach(product => {
             const img = new Image();
-            img.src = clImg(product.link, 730);
+            img.src = clImg(product.link, 900);
           });
+          // Lazy preload remaining after a short delay
+          if (data.length > 5) {
+            setTimeout(() => {
+              data.slice(5).forEach(product => {
+                const img = new Image();
+                img.src = clImg(product.link, 900);
+              });
+            }, 3000);
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setTimeout(() => setLoading(false), 2000);
+        setLoading(false);
       }
     };
     fetchData();
@@ -245,8 +291,8 @@ function App() {
     if (distance < -minSwipeDistance) prevProduct();
   };
 
-  // ── Loading screen ───────────────────────────────────
-  if (loading) {
+  // ── Splash screen ────────────────────────────────────
+  if (showSplash) {
     return (
       <div className="loading-screen">
         <img src={LOGO_URL} alt="Dermasis Remedies Loading..." className="loading-logo"
@@ -305,12 +351,12 @@ function App() {
               <button className="nav-dropdown-item nav-ddi-new" onClick={() => navigateTo('new-doctor')}>
                 + New Doctor
               </button>
-              <button className="nav-dropdown-item nav-ddi-delete" onClick={() => navigateTo('delete-doctor')}>
+              {/* <button className="nav-dropdown-item nav-ddi-delete" onClick={() => navigateTo('delete-doctor')}>
                 🗑 Delete Doctor
               </button>
               <button className="nav-dropdown-item nav-ddi-edit" onClick={() => navigateTo('edit-doctor')}>
                 ✏️ Add / Edit Products
-              </button>
+              </button> */}
             </div>
           )}
         </div>
@@ -432,171 +478,57 @@ function App() {
 
       <main className="main-content" id="visualizer">
 
-        {/* Search Bar with Suggestions */}
-        <div className="search-wrapper" ref={searchRef}>
-          <div className="search-input-container">
-            <Search className="search-icon" size={20} />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search products by name..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSuggestions(e.target.value.length > 0);
-              }}
-              onFocus={() => setShowSuggestions(searchQuery.length > 0)}
-            />
-          </div>
-
-          {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="search-suggestions active">
-              {filteredSuggestions.map(product => (
-                <div key={product._id} className="suggestion-item"
-                  onClick={() => handleSuggestionClick(product)}>
-                  <img src={clImg(product.link, 80)} alt={product.name}
-                    className="suggestion-img" width="40" height="40" loading="lazy" />
-                  <span>{product.name}</span>
-                </div>
-              ))}
+        {loading ? (
+          <>
+            <div className="search-wrapper">
+              <div className="skeleton" style={{ height: '50px', borderRadius: '25px', width: '100%', maxWidth: '600px', margin: '0 auto' }} />
             </div>
-          )}
-        </div>
-
-        {/* Product Visualizer */}
-        {products.length > 0 ? (
-          <div className="dv-vis-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div className="visualizer-container dv-visualizer-wrap"
-              onMouseMove={showArrows}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-              onClick={handleVisualizerClick}
-            >
-              {touchIndicator && (
-                <div className="ap-touch-indicator">
-                  {touchIndicator === 'play' ? <Play size={64} fill="white" /> : <Pause size={64} fill="white" />}
-                </div>
-              )}
-              <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
-                onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous Product">
-                <ChevronLeft size={40} />
-              </button>
-
-              <div className="product-image-wrapper dv-img-frame">
-                <img
-                  key={currentProduct?._id || currentProduct?.id}
-                  src={clImg(currentProduct?.link, 730)}
-                  alt={currentProduct?.name}
-                  className={`product-image dv-product-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
-                  width="730"
-                  height="730"
+            <div className="dv-vis-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '1rem', width: '100%' }}>
+              <div className="skeleton" style={{ width: '100%', maxWidth: '730px', aspectRatio: '1 / 1', borderRadius: '20px' }} />
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '2rem' }}>
+                <div className="skeleton" style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+                <div className="skeleton" style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+                <div className="skeleton" style={{ width: '50px', height: '50px', borderRadius: '50%' }} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Search Bar with Suggestions */}
+            <div className="search-wrapper" ref={searchRef}>
+              <div className="search-input-container">
+                <Search className="search-icon" size={20} />
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Search products by name..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(e.target.value.length > 0);
+                  }}
+                  onFocus={() => setShowSuggestions(searchQuery.length > 0)}
                 />
               </div>
 
-              <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
-                onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next Product">
-                <ChevronRight size={40} />
-              </button>
-            </div>
-            
-            <button className="dv-expand-btn" onClick={() => {
-              setFullscreen(true);
-              // Preload next 2 images using exact same resolution to utilize cache instantly
-              const next1 = products[(currentIndex + 1) % products.length];
-              const next2 = products[(currentIndex + 2) % products.length];
-              if (next1) { const img = new Image(); img.src = clImg(next1.link, 730); }
-              if (next2) { const img = new Image(); img.src = clImg(next2.link, 730); }
-            }} title="Fullscreen">
-              <Maximize2 size={20} />
-            </button>
-
-            {/* Settings Toggle & Controls */}
-            <div className="ap-settings-container">
-              <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
-                <Settings size={18} /> Settings
-              </button>
-              
-              {showSettings && (
-                <div className="ap-controls">
-                  <button className="ap-btn" onClick={startAutoPlayManually} title={isPlaying ? "Pause" : "Play"}>
-                    {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                  </button>
-                  <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
-                    <option value="0.25">0.25x</option>
-                    <option value="0.5">0.5x</option>
-                    <option value="1">1x</option>
-                    <option value="1.25">1.25x</option>
-                    <option value="1.5">1.5x</option>
-                    <option value="2">2x</option>
-                    <option value="2.5">2.5x</option>
-                  </select>
-                  <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
-                    <option value="slide">Slide</option>
-                    <option value="fade">Fade</option>
-                    <option value="zoom">Zoom</option>
-                    <option value="flip">Flip</option>
-                    <option value="rotate">Rotate</option>
-                    <option value="bounce">Bounce</option>
-                    <option value="blur">Blur</option>
-                  </select>
-                  <select className="ap-select" value={loopMode} onChange={(e) => {
-                    setLoopMode(e.target.value);
-                    setCurrentLoopIteration(0);
-                  }}>
-                    <option value="finite">Finite Loop</option>
-                    <option value="infinite">Infinite Loop</option>
-                  </select>
-                  {loopMode === 'finite' && (
-                    <select className="ap-select" value={loopCount} onChange={(e) => {
-                      setLoopCount(Number(e.target.value));
-                      setCurrentLoopIteration(0); // Reset progress when changing count
-                    }}>
-                      <option value={1}>1 Time</option>
-                      <option value={2}>2 Times</option>
-                      <option value={3}>3 Times</option>
-                      <option value={4}>4 Times</option>
-                      <option value={5}>5 Times</option>
-                      <option value={10}>10 Times</option>
-                    </select>
-                  )}
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <div className="search-suggestions active">
+                  {filteredSuggestions.map(product => (
+                    <div key={product._id} className="suggestion-item"
+                      onClick={() => handleSuggestionClick(product)}>
+                      <img src={clImg(product.link, 80)} alt={product.name}
+                        className="suggestion-img" width="40" height="40" loading="lazy" />
+                      <span>{product.name}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* End of Play Overlay */}
-            {hasFinishedPlay && !fullscreen && (
-              <div className="ap-end-overlay">
-                <h2 className="ap-end-title">Visualization Complete</h2>
-                <div className="ap-end-actions">
-                  <button className="ap-end-btn ap-btn-home" onClick={() => {
-                    setHasFinishedPlay(false);
-                    setCurrentIndex(0);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}>
-                    Back to Start
-                  </button>
-                  <button className="ap-end-btn ap-btn-again" onClick={() => {
-                    setHasFinishedPlay(false);
-                    setCurrentIndex(0);
-                    setIsPlaying(true);
-                  }}>
-                    Play Again
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Fullscreen Overlay */}
-            {fullscreen && (
-              <div className="dv-fullscreen-overlay">
-                <button className="dv-fs-close" onClick={() => setFullscreen(false)}>
-                  <X size={28} />
-                </button>
-                {/* <div className="dv-fs-name">{currentProduct?.name}</div> */}
-                <div className="dv-fs-counter">{currentIndex + 1} / {products.length}</div>
-
-                <div className="dv-visualizer-wrap dv-fs-vis"
+            {/* Product Visualizer */}
+            {products.length > 0 ? (
+              <div className="dv-vis-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div className="visualizer-container dv-visualizer-wrap"
                   onMouseMove={showArrows}
                   onTouchStart={onTouchStart}
                   onTouchMove={onTouchMove}
@@ -608,34 +540,51 @@ function App() {
                       {touchIndicator === 'play' ? <Play size={64} fill="white" /> : <Pause size={64} fill="white" />}
                     </div>
                   )}
-                  <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous">
-                    <ChevronLeft size={48} />
+                  <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
+                    onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous Product">
+                    <ChevronLeft size={40} />
                   </button>
-                  
-                  {currentProduct && (
+
+                  <div className="product-image-wrapper dv-img-frame">
                     <img
-                      key={`fs-${currentProduct?._id || currentProduct?.id}`}
-                      src={clImg(currentProduct.link, 1200)}
-                      alt={currentProduct.name}
-                      className={`dv-product-img dv-fs-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
+                      key={currentProduct?._id || currentProduct?.id}
+                      src={clImg(currentProduct?.link, 900)}
+                      alt={currentProduct?.name}
+                      className={`product-image dv-product-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
+                      width="730"
+                      height="730"
+                      style={{ aspectRatio: '1 / 1' }}
                     />
-                  )}
-                  
-                  <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next">
-                    <ChevronRight size={48} />
+                  </div>
+
+                  <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`} 
+                    onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next Product">
+                    <ChevronRight size={40} />
                   </button>
                 </div>
+                
+                <button className="dv-expand-btn" onClick={() => {
+                  setFullscreen(true);
+                  // Preload adjacent images
+                  for (let i = 1; i <= Math.min(4, products.length - 1); i++) {
+                    const next = products[(currentIndex + i) % products.length];
+                    if (next) {
+                      const img = new Image(); img.src = clImg(next.link, 900);
+                    }
+                  }
+                }} title="Fullscreen">
+                  <Maximize2 size={20} />
+                </button>
 
-                <div className="ap-settings-container" style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 30, width: 'auto', alignItems: 'flex-start' }}>
+                {/* Settings Toggle & Controls */}
+                <div className="ap-settings-container">
                   <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
-                    <Settings size={18} />
+                    <Settings size={18} /> Settings
                   </button>
                   
                   {showSettings && (
                     <div className="ap-controls">
-                      <button className="ap-btn" onClick={startAutoPlayManually}>
+                      <button className="ap-btn" onClick={startAutoPlayManually} title={isPlaying ? "Pause" : "Play"}>
                         {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                       </button>
                       <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
@@ -666,7 +615,7 @@ function App() {
                       {loopMode === 'finite' && (
                         <select className="ap-select" value={loopCount} onChange={(e) => {
                           setLoopCount(Number(e.target.value));
-                          setCurrentLoopIteration(0);
+                          setCurrentLoopIteration(0); // Reset progress when changing count
                         }}>
                           <option value={1}>1 Time</option>
                           <option value={2}>2 Times</option>
@@ -679,8 +628,9 @@ function App() {
                     </div>
                   )}
                 </div>
-                
-                {hasFinishedPlay && (
+
+                {/* End of Play Overlay */}
+                {hasFinishedPlay && !fullscreen && (
                   <div className="ap-end-overlay">
                     <h2 className="ap-end-title">Visualization Complete</h2>
                     <div className="ap-end-actions">
@@ -701,13 +651,132 @@ function App() {
                     </div>
                   </div>
                 )}
+
+                {/* Fullscreen Overlay */}
+                {fullscreen && (
+                  <div className="dv-fullscreen-overlay">
+                    <button className="dv-fs-close" onClick={() => setFullscreen(false)}>
+                      <X size={28} />
+                    </button>
+                    <div className="dv-fs-counter">{currentIndex + 1} / {products.length}</div>
+
+                    <div className="dv-visualizer-wrap dv-fs-vis"
+                      onMouseMove={showArrows}
+                      onTouchStart={onTouchStart}
+                      onTouchMove={onTouchMove}
+                      onTouchEnd={onTouchEnd}
+                      onClick={handleVisualizerClick}
+                    >
+                      {touchIndicator && (
+                        <div className="ap-touch-indicator">
+                          {touchIndicator === 'play' ? <Play size={64} fill="white" /> : <Pause size={64} fill="white" />}
+                        </div>
+                      )}
+                      <button className={`nav-arrow left dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); prevProduct(); }} aria-label="Previous">
+                        <ChevronLeft size={48} />
+                      </button>
+                      
+                      {currentProduct && (
+                        <img
+                          key={`fs-${currentProduct?._id || currentProduct?.id}`}
+                          src={clImg(currentProduct.link, 900)}
+                          alt={currentProduct.name}
+                          className={`dv-product-img dv-fs-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
+                          width="1200"
+                          height="1200"
+                          style={{ aspectRatio: '1 / 1', objectFit: 'contain' }}
+                        />
+                      )}
+                      
+                      <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); nextProduct(); }} aria-label="Next">
+                        <ChevronRight size={48} />
+                      </button>
+                    </div>
+
+                    <div className="ap-settings-container" style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 30, width: 'auto', alignItems: 'flex-start' }}>
+                      <button className="ap-settings-toggle" onClick={() => setShowSettings(!showSettings)}>
+                        <Settings size={18} />
+                      </button>
+                      
+                      {showSettings && (
+                        <div className="ap-controls">
+                          <button className="ap-btn" onClick={startAutoPlayManually}>
+                            {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                          </button>
+                          <select className="ap-select" value={playSpeed} onChange={(e) => setPlaySpeed(Number(e.target.value))}>
+                            <option value="0.25">0.25x</option>
+                            <option value="0.5">0.5x</option>
+                            <option value="1">1x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                            <option value="2">2x</option>
+                            <option value="2.5">2.5x</option>
+                          </select>
+                          <select className="ap-select" value={animStyle} onChange={(e) => setAnimStyle(e.target.value)}>
+                            <option value="slide">Slide</option>
+                            <option value="fade">Fade</option>
+                            <option value="zoom">Zoom</option>
+                            <option value="flip">Flip</option>
+                            <option value="rotate">Rotate</option>
+                            <option value="bounce">Bounce</option>
+                            <option value="blur">Blur</option>
+                          </select>
+                          <select className="ap-select" value={loopMode} onChange={(e) => {
+                            setLoopMode(e.target.value);
+                            setCurrentLoopIteration(0);
+                          }}>
+                            <option value="finite">Finite Loop</option>
+                            <option value="infinite">Infinite Loop</option>
+                          </select>
+                          {loopMode === 'finite' && (
+                            <select className="ap-select" value={loopCount} onChange={(e) => {
+                              setLoopCount(Number(e.target.value));
+                              setCurrentLoopIteration(0);
+                            }}>
+                              <option value={1}>1 Time</option>
+                              <option value={2}>2 Times</option>
+                              <option value={3}>3 Times</option>
+                              <option value={4}>4 Times</option>
+                              <option value={5}>5 Times</option>
+                              <option value={10}>10 Times</option>
+                            </select>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {hasFinishedPlay && (
+                      <div className="ap-end-overlay">
+                        <h2 className="ap-end-title">Visualization Complete</h2>
+                        <div className="ap-end-actions">
+                          <button className="ap-end-btn ap-btn-home" onClick={() => {
+                            setHasFinishedPlay(false);
+                            setCurrentIndex(0);
+                            setFullscreen(false);
+                          }}>
+                            Close Fullscreen
+                          </button>
+                          <button className="ap-end-btn ap-btn-again" onClick={() => {
+                            setHasFinishedPlay(false);
+                            setCurrentIndex(0);
+                            setIsPlaying(true);
+                          }}>
+                            Play Again
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="no-results">
+                <p>Failed to Connect The Server to load products...</p>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="no-results">
-            <p>Failed to Connect The Server to load products...</p>
-          </div>
+          </>
         )}
       </main>
 
@@ -725,16 +794,16 @@ function Footer() {
       <div className="footer-content" style={{ paddingBottom: '0', borderBottom: 'none', justifyContent: 'center' }}>
         <div className="footer-section" style={{ textAlign: 'center' }}>
           <img src={LOGO_URL_FOOTER} alt="Dermasis Logo" className="footer-logo"
-            width="80" height="80" loading="lazy" style={{ margin: '0 auto 1rem' }} />
-          <p className="footer-text" style={{ marginTop: '1rem', justifyContent: 'center' }}>
+            width="60" height="60" loading="lazy" style={{ margin: '0 auto 0rem' }} />
+          <p className="footer-text" style={{ marginTop: '0rem', justifyContent: 'center' }}>
             DERMASIS REMEDIES Pvt. Ltd.
           </p>
         </div>
       </div>
 
-      <div className="footer-bottom" style={{ paddingTop: '1rem' }}>
+      <div className="footer-bottom" style={{ paddingTop: '0.5rem' }}>
         <p>&copy; {new Date().getFullYear()} Dermasis Remedies Pvt. Ltd. All rights reserved.</p>
-        <p style={{ marginTop: '0.5rem', color: 'var(--color-secondary)' }}>
+        <p style={{ marginTop: '0.5rem', color: '#4ade80' }}>
           Powered by Softcapphyjas Pvt. Ltd.
         </p>
       </div>

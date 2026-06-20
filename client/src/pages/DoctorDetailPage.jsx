@@ -51,11 +51,21 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
         const data = await res.json();
         setDoctor(data);
         setProducts(data.products || []);
-        // Preload images
-        (data.products || []).forEach(p => {
+        // Preload first 5 images immediately
+        const prods = data.products || [];
+        prods.slice(0, 5).forEach(p => {
           const img = new Image();
           img.src = clImg(p.link, 900);
         });
+        // Lazy preload remaining after a short delay
+        if (prods.length > 5) {
+          setTimeout(() => {
+            prods.slice(5).forEach(p => {
+              const img = new Image();
+              img.src = clImg(p.link, 900);
+            });
+          }, 2000);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -244,11 +254,12 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
         {currentProduct ? (
           <img
             key={currentProduct.id}
-            src={clImg(currentProduct.link, 730)}
+            src={clImg(currentProduct.link, 900)}
             alt={currentProduct.name}
             className={`dv-product-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
             width="730"
             height="730"
+            style={{ aspectRatio: '1 / 1' }}
           />
         ) : (
           <div className="dv-no-products">
@@ -325,11 +336,13 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
         {Visualizer}
         <button className="dv-expand-btn" onClick={() => {
           setFullscreen(true);
-          // Preload next 2 images
-          const next1 = products[(currentIdx + 1) % products.length];
-          const next2 = products[(currentIdx + 2) % products.length];
-          if (next1) { const img = new Image(); img.src = clImg(next1.link, 730); }
-          if (next2) { const img = new Image(); img.src = clImg(next2.link, 730); }
+          // Preload adjacent images
+          for (let i = 1; i <= Math.min(4, products.length - 1); i++) {
+            const next = products[(currentIdx + i) % products.length];
+            if (next) {
+              const img = new Image(); img.src = clImg(next.link, 900);
+            }
+          }
         }} title="Fullscreen">
           <Maximize2 size={20} />
         </button>
@@ -439,9 +452,12 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
             {currentProduct && (
               <img
                 key={`fs-${currentProduct.id}`}
-                src={clImg(currentProduct.link, 1200)}
+                src={clImg(currentProduct.link, 900)}
                 alt={currentProduct.name}
                 className={`dv-product-img dv-fs-img${imgAnim ? ` dv-${imgAnim}` : ''}`}
+                width="1200"
+                height="1200"
+                style={{ aspectRatio: '1 / 1', objectFit: 'contain' }}
               />
             )}
             <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}

@@ -58,13 +58,30 @@ const Doctor = mongoose.model('Doctor', DoctorSchema);
 const url = process.env.MONGODB_URI;
 
 mongoose.connect(url)
-    .then(() => console.log("✅ Database Connected Successfully"))
+    .then(async () => {
+      console.log("✅ Database Connected Successfully");
+      // Ensure indexes on frequently queried fields
+      try {
+        await Doctor.collection.createIndex({ name: 1 });
+        await Doctor.collection.createIndex({ city: 1 });
+        await Doctor.collection.createIndex({ state: 1 });
+        await Doctor.collection.createIndex({ grade: 1 });
+        console.log("✅ Database indexes ensured");
+      } catch (idxErr) {
+        console.warn("⚠️ Index creation warning:", idxErr.message);
+      }
+    })
     .catch((err) => {
         console.error("❌ Database Connection Error Details:");
         console.error("Code:", err.code);
         console.error("Message:", err.message);
         console.error("Full Error:", err);
     });
+
+// ─── In-Memory Cache ─────────────────────────────────────────────────────────
+let productCache = null;
+let productCacheTime = 0;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // ─── Product Vizulate Routes ─────────────────────────────────────────────────
 
@@ -81,10 +98,16 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// Product Vizulate endpoint WITH SORTING by name ascending
+// Product Vizulate endpoint WITH SORTING by name ascending + in-memory cache
 app.get('/api/vizulate-products', async (req, res) => {
     try {
+        const now = Date.now();
+        if (productCache && (now - productCacheTime) < CACHE_TTL_MS) {
+          return res.status(200).json(productCache);
+        }
         const products = await ProductVizulate.find({}).sort({ name: 1 });
+        productCache = products;
+        productCacheTime = now;
         res.status(200).json(products);
     } catch (error) {
         console.error("Error fetching vizulate products:", error);

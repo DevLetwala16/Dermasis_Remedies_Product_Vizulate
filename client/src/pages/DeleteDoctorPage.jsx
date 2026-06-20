@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Trash2, AlertTriangle, RefreshCw, Search } from 'lucide-react';
 
 /* ── CAPTCHA helpers ──────────────────────────────────────────────── */
 const CAPTCHA_CHARS =
@@ -24,6 +24,7 @@ function DeleteDoctorPage({ navigateTo, BACKEND_URL }) {
   const [captchaErr,  setCaptchaErr]  = useState('');
   const [deleting,    setDeleting]    = useState(false);
   const [deleteMsg,   setDeleteMsg]   = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => { fetchDoctors(); }, []);
 
@@ -93,25 +94,43 @@ function DeleteDoctorPage({ navigateTo, BACKEND_URL }) {
 
       {deleteMsg && <div className="dd-success-msg">{deleteMsg}</div>}
 
+      
+      {!loading && doctors.length > 0 && (
+        <div className="dp-search-bar" style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', background: '#FFFFFF', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', }}>
+          <Search size={18} style={{ color: '#B0b0CB', marginRight: '0.5rem', alignContent: 'center'}} />
+          <input 
+            type="text" 
+            placeholder="Search doctors by name..." 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{ background: 'transparent', border: 'none', color: '#000000', width: '100%', outline: 'none', fontSize: '0.95rem' }}
+          />
+        </div>
+      )}
+
       {loading ? (
         <div className="dp-loading"><div className="dp-spinner" /><p>Loading…</p></div>
       ) : doctors.length === 0 ? (
         <div className="dp-empty"><p>No doctors in the list.</p></div>
       ) : (
         <div className="dd-list">
-          {doctors.map(doc => (
-            <div key={doc._id} className="dd-list-item">
-              <div className="dd-list-avatar">{doc.name.charAt(0).toUpperCase()}</div>
-              <div className="dd-list-info">
-                <p className="dd-list-name">{doc.name}</p>
-                <p className="dd-list-meta">{doc.degreeType} · {doc.city}, {doc.state}</p>
-                <p className="dd-list-meta">📞 {doc.phone}</p>
+          {doctors.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
+            <div className="dp-empty"><p>No doctors found matching "{searchQuery}"</p></div>
+          ) : (
+            doctors.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())).map(doc => (
+              <div key={doc._id} className="dd-list-item">
+                <div className="dd-list-avatar">{doc.name.charAt(0).toUpperCase()}</div>
+                <div className="dd-list-info">
+                  <p className="dd-list-name">{doc.name}</p>
+                  <p className="dd-list-meta">{doc.degreeType} · {doc.city}, {doc.state}</p>
+                  <p className="dd-list-meta">📞 {doc.phone}</p>
+                </div>
+                <button className="dd-delete-btn" onClick={() => openModal(doc)}>
+                  <Trash2 size={16} /> Delete
+                </button>
               </div>
-              <button className="dd-delete-btn" onClick={() => openModal(doc)}>
-                <Trash2 size={16} /> Delete
-              </button>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
 

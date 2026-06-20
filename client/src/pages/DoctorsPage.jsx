@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, UserCheck, Plus, Trash2, Edit3, ChevronRight, Filter, X } from 'lucide-react';
+import { Search, UserCheck, Plus, Trash2, Edit3, ChevronRight, Filter, X, Menu } from 'lucide-react';
 
 function DoctorsPage({ navigateTo, BACKEND_URL }) {
   const [doctors, setDoctors]     = useState([]);
@@ -9,11 +9,16 @@ function DoctorsPage({ navigateTo, BACKEND_URL }) {
   const [activeFilters, setActiveFilters] = useState([]);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const filterMenuRef = useRef(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const actionMenuRef = useRef(null);
 
   useEffect(() => { fetchDoctors(); }, []);
 
   useEffect(() => {
-    const handler = e => { if (filterMenuRef.current && !filterMenuRef.current.contains(e.target)) setShowFilterMenu(false); };
+    const handler = e => { 
+      if (filterMenuRef.current && !filterMenuRef.current.contains(e.target)) setShowFilterMenu(false); 
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target)) setShowActionMenu(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
@@ -115,19 +120,32 @@ function DoctorsPage({ navigateTo, BACKEND_URL }) {
           <h2>Doctors</h2>
           <span className="dp-count-badge">{doctors.length}</span>
         </div>
-        <div className="dp-action-row">
-          <button className="dp-btn dp-btn-new"    onClick={() => navigateTo('new-doctor')}>
-            <Plus size={16} /> New
+        <div className="dp-action-menu-container" ref={actionMenuRef} style={{ position: 'relative' }}>
+          <button className="dp-btn dp-btn-menu" onClick={() => setShowActionMenu(!showActionMenu)} aria-label="Menu" style={{ padding: '0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}>
+            <Menu size={24} />
           </button>
-          <button className="dp-btn dp-btn-delete" onClick={() => navigateTo('delete-doctor')}>
-            <Trash2 size={16} /> Delete
-          </button>
-          <button className="dp-btn dp-btn-edit"   onClick={() => navigateTo('edit-doctor-info')}>
-            <Edit3 size={16} /> Edit Details
-          </button>
-          <button className="dp-btn dp-btn-edit"   onClick={() => navigateTo('edit-doctor')}>
-            <Edit3 size={16} /> Edit Products
-          </button>
+          
+          {showActionMenu && (
+            <div className="dp-dropdown-menu" style={{ 
+              position: 'absolute', top: '100%', right: '0', marginTop: '0.5rem', 
+              background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', 
+              borderRadius: '8px', padding: '0.5rem', zIndex: 50, display: 'flex', 
+              flexDirection: 'column', gap: '0.25rem', minWidth: '180px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+            }}>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('new-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#f8fafc', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
+                <Plus size={16} /> New
+              </button>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor-info'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#38bdf8', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
+                <Edit3 size={16} /> Edit Details
+              </button>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#38bdf8', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
+                <Edit3 size={16} /> Add/Edit Products
+              </button>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('delete-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
+                <Trash2 size={16} /> Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -208,9 +226,19 @@ function DoctorsPage({ navigateTo, BACKEND_URL }) {
 
       {/* Grid */}
       {loading ? (
-        <div className="dp-loading">
-          <div className="dp-spinner" />
-          <p>Loading doctors…</p>
+        <div className="dp-grid">
+          {Array(8).fill(0).map((_, i) => (
+            <div key={i} className="dp-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', cursor: 'default' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div className="skeleton" style={{ width: '50px', height: '50px', borderRadius: '50%', flexShrink: 0 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <div className="skeleton" style={{ height: '1.2rem', width: '70%', borderRadius: '4px' }} />
+                  <div className="skeleton" style={{ height: '0.9rem', width: '40%', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div className="skeleton" style={{ height: '0.9rem', width: '85%', borderRadius: '4px', marginTop: '0.5rem' }} />
+            </div>
+          ))}
         </div>
       ) : processedDoctors.length === 0 ? (
         <div className="dp-empty">
