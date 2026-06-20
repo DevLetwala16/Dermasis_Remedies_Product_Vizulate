@@ -34,6 +34,20 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
   const [indiaStates, setIndiaStates] = useState([]);
   const [indiaCities, setIndiaCities] = useState([]);
 
+  const [showStateSug, setShowStateSug] = useState(false);
+  const [showCitySug, setShowCitySug] = useState(false);
+  const stateRef = React.useRef(null);
+  const cityRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handler = e => { 
+      if (stateRef.current && !stateRef.current.contains(e.target)) setShowStateSug(false); 
+      if (cityRef.current && !cityRef.current.contains(e.target)) setShowCitySug(false); 
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   React.useEffect(() => {
     fetch('https://countriesnow.space/api/v0.1/countries/states', {
       method: 'POST',
@@ -169,26 +183,47 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           </div>
 
           {/* State */}
-          <div className="nd-field">
+          <div className="nd-field" ref={stateRef}>
             <label htmlFor="nd-state">State *</label>
-            <input id="nd-state" name="state" type="text" list="state-list"
-              placeholder="State" value={form.state} onChange={handleChange}
-              className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
-            <datalist id="state-list">
-              {indiaStates.map(s => <option key={s} value={s} />)}
-            </datalist>
+            <div style={{ position: 'relative' }}>
+              <input id="nd-state" name="state" type="text"
+                placeholder="State" value={form.state} 
+                onChange={(e) => { handleChange(e); setShowStateSug(true); setForm(f => ({...f, city: ''})); }}
+                onFocus={() => setShowStateSug(true)}
+                className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+              {showStateSug && indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).length > 0 && (
+                <div className="ed-suggestions">
+                  {indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).map(s => (
+                    <div key={s} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, state: s})); setShowStateSug(false); setErrors(er => ({...er, state: undefined})); }}>
+                      <span className="ed-sug-name">{s}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {errors.state && <span className="nd-error">{errors.state}</span>}
           </div>
 
           {/* City */}
-          <div className="nd-field">
+          <div className="nd-field" ref={cityRef}>
             <label htmlFor="nd-city">City *</label>
-            <input id="nd-city" name="city" type="text" list="city-list"
-              placeholder="City / Village" value={form.city} onChange={handleChange}
-              className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
-            <datalist id="city-list">
-              {indiaCities.map(c => <option key={c} value={c} />)}
-            </datalist>
+            <div style={{ position: 'relative' }}>
+              <input id="nd-city" name="city" type="text"
+                placeholder="City / Village" value={form.city} 
+                onChange={(e) => { handleChange(e); setShowCitySug(true); }}
+                onFocus={() => setShowCitySug(true)}
+                disabled={!form.state}
+                className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+              {showCitySug && indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).length > 0 && (
+                <div className="ed-suggestions">
+                  {indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).slice(0, 50).map(c => (
+                    <div key={c} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, city: c})); setShowCitySug(false); setErrors(er => ({...er, city: undefined})); }}>
+                      <span className="ed-sug-name">{c}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {errors.city && <span className="nd-error">{errors.city}</span>}
           </div>
 

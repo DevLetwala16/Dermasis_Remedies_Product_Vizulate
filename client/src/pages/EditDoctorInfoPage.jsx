@@ -35,6 +35,10 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
   const [indiaCities, setIndiaCities] = useState([]);
 
   const sugRef = useRef(null);
+  const stateRef = useRef(null);
+  const cityRef = useRef(null);
+  const [showStateSug, setShowStateSug] = useState(false);
+  const [showCitySug, setShowCitySug] = useState(false);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/doctors`)
@@ -78,6 +82,8 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
   useEffect(() => {
     const handler = e => { 
       if (sugRef.current && !sugRef.current.contains(e.target)) setShowSug(false); 
+      if (stateRef.current && !stateRef.current.contains(e.target)) setShowStateSug(false); 
+      if (cityRef.current && !cityRef.current.contains(e.target)) setShowCitySug(false); 
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -256,24 +262,43 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
               {errors.phone && <span className="nd-error">{errors.phone}</span>}
             </div>
 
-            <div className="nd-field">
+            <div className="nd-field" ref={stateRef}>
               <label htmlFor="nd-state">State *</label>
               <div style={{ position: 'relative' }}>
-                <input id="nd-state" name="state" placeholder="State" value={form.state} onChange={handleChange} className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} list="state-list" autoComplete="off" />
-                <datalist id="state-list">
-                  {indiaStates.map(s => <option key={s} value={s} />)}
-                </datalist>
+                <input id="nd-state" name="state" placeholder="State" value={form.state} 
+                  onChange={(e) => { handleChange(e); setShowStateSug(true); setForm(f => ({...f, city: ''})); }}
+                  onFocus={() => setShowStateSug(true)}
+                  className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+                {showStateSug && indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).length > 0 && (
+                  <div className="ed-suggestions">
+                    {indiaStates.filter(s => s.toLowerCase().includes(form.state.toLowerCase())).map(s => (
+                      <div key={s} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, state: s})); setShowStateSug(false); setErrors(er => ({...er, state: undefined})); }}>
+                        <span className="ed-sug-name">{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {errors.state && <span className="nd-error">{errors.state}</span>}
             </div>
 
-            <div className="nd-field">
+            <div className="nd-field" ref={cityRef}>
               <label htmlFor="nd-city">City *</label>
               <div style={{ position: 'relative' }}>
-                <input id="nd-city" name="city" placeholder="city / Village" value={form.city} onChange={handleChange} disabled={!form.state} className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} list="city-list" autoComplete="off" />
-                <datalist id="city-list">
-                  {indiaCities.map(c => <option key={c} value={c} />)}
-                </datalist>
+                <input id="nd-city" name="city" placeholder="city / Village" value={form.city} 
+                  onChange={(e) => { handleChange(e); setShowCitySug(true); }}
+                  onFocus={() => setShowCitySug(true)}
+                  disabled={!form.state} 
+                  className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
+                {showCitySug && indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).length > 0 && (
+                  <div className="ed-suggestions">
+                    {indiaCities.filter(c => c.toLowerCase().includes(form.city.toLowerCase())).slice(0, 50).map(c => (
+                      <div key={c} className="ed-suggestion-item" onClick={() => { setForm(f => ({...f, city: c})); setShowCitySug(false); setErrors(er => ({...er, city: undefined})); }}>
+                        <span className="ed-sug-name">{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {errors.city && <span className="nd-error">{errors.city}</span>}
             </div>
