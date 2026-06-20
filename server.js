@@ -39,10 +39,10 @@ const DoctorProductSchema = new mongoose.Schema({
 
 const DoctorSchema = new mongoose.Schema({
   name:          { type: String, required: true },
-  phone:         { type: String, required: true },
+  phone:         { type: String, default: '' },
   state:         { type: String, required: true },
   city:          { type: String, required: true },
-  subLocality:   { type: String, required: '' },
+  subLocality:   { type: String, default: '' },
   email:         { type: String, default: '' },
   degreeType:    { type: String, required: true },
   specialization:{ type: String, default: true },

@@ -120,29 +120,27 @@ function DoctorsPage({ navigateTo, BACKEND_URL }) {
           <h2>Doctors</h2>
           <span className="dp-count-badge">{doctors.length}</span>
         </div>
-        <div className="dp-action-menu-container" ref={actionMenuRef} style={{ position: 'relative' }}>
-          <button className="dp-btn dp-btn-menu" onClick={() => setShowActionMenu(!showActionMenu)} aria-label="Menu" style={{ padding: '0.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}>
+        <div className="dp-action-menu-container" ref={actionMenuRef}>
+          <button className="dp-btn dp-btn-menu" onClick={() => setShowActionMenu(!showActionMenu)} aria-label="Menu">
             <Menu size={24} />
           </button>
           
           {showActionMenu && (
-            <div className="dp-dropdown-menu" style={{ 
-              position: 'absolute', top: '100%', right: '0', marginTop: '0.5rem', 
-              background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', 
-              borderRadius: '8px', padding: '0.5rem', zIndex: 50, display: 'flex', 
-              flexDirection: 'column', gap: '0.25rem', minWidth: '180px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
-            }}>
-              <button className="dp-dropdown-item" onClick={() => { navigateTo('new-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#f8fafc', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
-                <Plus size={16} /> New
+            <div className="dp-dropdown-menu">
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('new-doctor'); setShowActionMenu(false); }}>
+                <Plus size={18} className="dp-dropdown-icon" /> New Doctor
               </button>
-              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor-info'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#38bdf8', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
-                <Edit3 size={16} /> Edit Details
+              <div className="dp-dropdown-divider"></div>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor'); setShowActionMenu(false); }}>
+                <Edit3 size={18} className="dp-dropdown-icon" /> Add/Edit Products
               </button>
-              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#38bdf8', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
-                <Edit3 size={16} /> Add/Edit Products
+              <div className="dp-dropdown-divider"></div>
+              <button className="dp-dropdown-item" onClick={() => { navigateTo('edit-doctor-info'); setShowActionMenu(false); }}>
+                <Edit3 size={18} className="dp-dropdown-icon" /> Edit Doctor Details
               </button>
-              <button className="dp-dropdown-item" onClick={() => { navigateTo('delete-doctor'); setShowActionMenu(false); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', textAlign: 'left', borderRadius: '4px', fontSize: '0.95rem', transition: 'background 0.2s' }}>
-                <Trash2 size={16} /> Delete
+              <div className="dp-dropdown-divider"></div>
+              <button className="dp-dropdown-item dp-dropdown-item-danger" onClick={() => { navigateTo('delete-doctor'); setShowActionMenu(false); }}>
+                <Trash2 size={18} className="dp-dropdown-icon" /> Delete Doctor
               </button>
             </div>
           )}

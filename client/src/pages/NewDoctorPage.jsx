@@ -71,12 +71,12 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
   const validate = () => {
     const e = {};
     if (!form.name.trim())        e.name        = 'Name is required';
-    if (!form.phone.trim())       e.phone       = 'Phone is required';
-    else if (!/^\d{10}$/.test(form.phone.replace(/\s/g,'')))
-                                  e.phone       = 'Phone must be exactly 10 digits';
+    // if (!form.phone.trim())       e.phone       = 'Phone is required';
+    // else if (!/^\d{10}$/.test(form.phone.replace(/\s/g,'')))
+    //                               e.phone       = 'Phone must be exactly 10 digits';
     if (!form.state.trim())       e.state       = 'State is required';
     if (!form.city.trim())        e.city        = 'City is required';
-    if (!form.subLocality.trim()) e.subLocality = 'Sub locality is required';
+    // if (!form.subLocality.trim()) e.subLocality = 'Sub locality is required';
     if (form.email && !/\S+@\S+\.\S+/.test(form.email))
                                   e.email       = 'Enter a valid email';
     if (!form.degreeType)         e.degreeType  = 'Degree type is required';
@@ -145,16 +145,16 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           <div className="nd-field nd-field-full">
             <label htmlFor="nd-name">Full Name *</label>
             <input id="nd-name" name="name" type="text"
-              placeholder="Dr. First Last" value={form.name} onChange={handleChange}
+              placeholder="First Last" value={form.name} onChange={handleChange}
               className={errors.name ? 'nd-input nd-input-error' : 'nd-input'} />
             {errors.name && <span className="nd-error">{errors.name}</span>}
           </div>
 
           {/* Phone */}
           <div className="nd-field">
-            <label htmlFor="nd-phone">Phone Number *</label>
+            <label htmlFor="nd-phone">Phone Number <span className="nd-optional">(optional)</span></label>
             <input id="nd-phone" name="phone" type="tel"
-              placeholder="+91 98765 43210" value={form.phone} onChange={handleChange}
+              placeholder="+91 xxxxxxxxxx" value={form.phone} onChange={handleChange}
               className={errors.phone ? 'nd-input nd-input-error' : 'nd-input'} />
             {errors.phone && <span className="nd-error">{errors.phone}</span>}
           </div>
@@ -172,7 +172,7 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           <div className="nd-field">
             <label htmlFor="nd-state">State *</label>
             <input id="nd-state" name="state" type="text" list="state-list"
-              placeholder="Gujarat" value={form.state} onChange={handleChange}
+              placeholder="State" value={form.state} onChange={handleChange}
               className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
             <datalist id="state-list">
               {indiaStates.map(s => <option key={s} value={s} />)}
@@ -184,7 +184,7 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           <div className="nd-field">
             <label htmlFor="nd-city">City *</label>
             <input id="nd-city" name="city" type="text" list="city-list"
-              placeholder="Surat" value={form.city} onChange={handleChange}
+              placeholder="City / Village" value={form.city} onChange={handleChange}
               className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
             <datalist id="city-list">
               {indiaCities.map(c => <option key={c} value={c} />)}
@@ -194,9 +194,9 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
 
           {/* Sub Locality */}
           <div className="nd-field">
-            <label htmlFor="nd-subLocality">Sub Locality *</label>
+            <label htmlFor="nd-subLocality">Sub Locality <span className="nd-optional">(optional)</span></label>
             <input id="nd-subLocality" name="subLocality" type="text"
-              placeholder="Adajan" value={form.subLocality} onChange={handleChange}
+              placeholder="Local Area / Road / Street" value={form.subLocality} onChange={handleChange}
               className={errors.subLocality ? 'nd-input nd-input-error' : 'nd-input'} />
             {errors.subLocality && <span className="nd-error">{errors.subLocality}</span>}
           </div>
@@ -217,7 +217,7 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
           <div className="nd-field">
             <label htmlFor="nd-specialization">Specialization <span className="nd-optional">(optional)</span></label>
             <input id="nd-specialization" name="specialization" type="text" list="specialization-list"
-              placeholder="Cardiology" value={form.specialization} onChange={handleChange}
+              placeholder="Specilization " value={form.specialization} onChange={handleChange}
               className={errors.specialization ? 'nd-input nd-input-error' : 'nd-input'} autoComplete="off" />
             <datalist id="specialization-list">
               {SPECIALIZATIONS.map(s => <option key={s} value={s} />)}
@@ -227,18 +227,40 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
 
           {/* Visit Day */}
           <div className="nd-field">
-            <label htmlFor="nd-visitDay">Doctor Visit Day *</label>
-            <select id="nd-visitDay" name="visitDay" value={form.visitDay}
-              onChange={handleChange}
-              className={errors.visitDay ? 'nd-input nd-select nd-input-error' : 'nd-input nd-select'}>
-              <option value="">Select Visit Day…</option>
-              <option value="Monday">Monday</option>
-              <option value="Tuesday">Tuesday</option>
-              <option value="Wednesday">Wednesday</option>
-              <option value="Thursday">Thursday</option>
-              <option value="Friday">Friday</option>
-              <option value="Saturday">Saturday</option>
-            </select>
+            <label>Doctor Visit Day *</label>
+            <div className="nd-checkbox-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '5px', padding: '0.5rem 0' }}>
+              {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
+                const isChecked = form.visitDay ? form.visitDay.split(', ').includes(day) : false;
+                return (
+                  <label key={day} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem', color: '#475569' }}>
+                    <input 
+                      type="checkbox" 
+                      name="visitDay" 
+                      value={day} 
+                      checked={isChecked}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setForm(f => {
+                          let newDays = f.visitDay ? f.visitDay.split(', ').filter(Boolean) : [];
+                          if (e.target.checked) {
+                            if (!newDays.includes(value)) newDays.push(value);
+                          } else {
+                            newDays = newDays.filter(d => d !== value);
+                          }
+                          // Keep the days in standard order
+                          const order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                          newDays.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+                          return { ...f, visitDay: newDays.join(', ') };
+                        });
+                        setErrors(er => ({ ...er, visitDay: undefined }));
+                      }}
+                      style={{ accentColor: '#3b82f6', width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    {day}
+                  </label>
+                );
+              })}
+            </div>
             {errors.visitDay && <span className="nd-error">{errors.visitDay}</span>}
           </div>
 
@@ -260,9 +282,9 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
         </div>
 
         {/* Default product note */}
-        <div className="nd-default-product-note">
+        {/* <div className="nd-default-product-note">
           <span>🔗 Default product <strong>{DEFAULT_PRODUCT.name}</strong> will be auto-linked to this doctor.</span>
-        </div>
+        </div> */}
 
         {errors.submit && <div className="nd-submit-error">{errors.submit}</div>}
 

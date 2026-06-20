@@ -232,7 +232,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
 
       {/* ── Step 1: Select Doctor ── */}
       <div className="ed-section">
-        <h3 className="ed-section-title">Step 1 — Select Doctor</h3>
+        <h3 className="ed-section-title">Select Doctor</h3>
         <div className="ed-doctor-search" ref={sugRef}>
           <div className="ed-search-row">
             <div className="ed-search-input-wrap">
@@ -253,7 +253,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
               disabled={!selectedDoc || fetching}
             >
               {fetching ? <span className="nd-btn-spinner" /> : <Download size={16} />}
-              Fetch Info
+              Fetch
             </button>
           </div>
 
@@ -293,7 +293,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
         <>
           {/* Subsection 1 – Add Product */}
           <div className="ed-section">
-            <h3 className="ed-section-title">Subsection 1 — Add Product</h3>
+            <h3 className="ed-section-title">Add Product</h3>
             <p className="ed-section-hint">
               Search for a product below and click Add to link it to this doctor.
             </p>
@@ -312,7 +312,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
               </div>
               <button className="ed-add-btn" onClick={handleAddProduct} disabled={adding || !selectedProd}>
                 {adding ? <span className="nd-btn-spinner" /> : <Plus size={16} />}
-                Add
+                Add Product
               </button>
 
               {showProdSug && prodSuggestions.length > 0 && (
@@ -334,7 +334,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
           {/* Subsection 2 – Linked Products */}
           <div className="ed-section">
             <h3 className="ed-section-title">
-              Subsection 2 — Linked Products
+              Added Products
               <span className="dp-count-badge" style={{marginLeft:'0.75rem'}}>{docProducts.length}</span>
             </h3>
             {docProducts.length === 0 ? (
@@ -386,7 +386,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
                 checked={confirmed}
                 onChange={e => setConfirmed(e.target.checked)}
               />
-              I confirm all changes are correct
+              I confirm all changes are correct.
             </label>
             <button
               className="ed-save-btn"

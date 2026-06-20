@@ -135,12 +135,10 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
   const validate = () => {
     const e = {};
     if (!form.name.trim())        e.name        = 'Name is required';
-    if (!form.phone.trim())       e.phone       = 'Phone is required';
-    else if (!/^\d{10}$/.test(form.phone.replace(/\s/g,'')))
+    if (form.phone.trim() && !/^\d{10}$/.test(form.phone.replace(/\s/g,'')))
                                   e.phone       = 'Phone must be exactly 10 digits';
     if (!form.state.trim())       e.state       = 'State is required';
     if (!form.city.trim())        e.city        = 'City is required';
-    if (!form.subLocality.trim()) e.subLocality = 'Sub locality is required';
     if (form.email && !/\S+@\S+\.\S+/.test(form.email))
                                   e.email       = 'Enter a valid email';
     if (!form.degreeType)         e.degreeType  = 'Degree type is required';
@@ -202,7 +200,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
       </div>
 
       <div className="ed-section">
-        <h3 className="ed-section-title">Step 1 — Search Doctor</h3>
+        <h3 className="ed-section-title">Search Doctor</h3>
         <div className="ed-doctor-search" ref={sugRef}>
           <div className="ed-search-row">
             <div className="ed-search-input-wrap">
@@ -223,7 +221,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
               disabled={!selectedDoc || fetching}
             >
               {fetching ? <span className="nd-btn-spinner" /> : <Download size={16} />}
-              Fetch Info
+              Fetch
             </button>
           </div>
 
@@ -245,23 +243,23 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
 
       {form.name && (
         <div className="nd-card" style={{ marginTop: '2rem' }}>
-          <h3 className="ed-section-title">Step 2 — Edit Details</h3>
+          <h3 className="ed-section-title">Edit Details</h3>
           <div className="nd-form-grid">
             <div className="nd-field">
               <label htmlFor="nd-name">Doctor Name *</label>
-              <input id="nd-name" name="name" placeholder="Dr. John Doe" value={form.name} onChange={handleChange} className={errors.name ? 'nd-input nd-input-error' : 'nd-input'} />
+              <input id="nd-name" name="name" placeholder="Full Name" value={form.name} onChange={handleChange} className={errors.name ? 'nd-input nd-input-error' : 'nd-input'} />
               {errors.name && <span className="nd-error">{errors.name}</span>}
             </div>
             <div className="nd-field">
-              <label htmlFor="nd-phone">Phone Number *</label>
-              <input id="nd-phone" name="phone" placeholder="9876543210" value={form.phone} onChange={handleChange} className={errors.phone ? 'nd-input nd-input-error' : 'nd-input'} />
+              <label htmlFor="nd-phone">Phone Number <span className="nd-optional">(optional)</span></label>
+              <input id="nd-phone" name="phone" placeholder="+91 xxxxxxxxxx" value={form.phone} onChange={handleChange} className={errors.phone ? 'nd-input nd-input-error' : 'nd-input'} />
               {errors.phone && <span className="nd-error">{errors.phone}</span>}
             </div>
 
             <div className="nd-field">
               <label htmlFor="nd-state">State *</label>
               <div style={{ position: 'relative' }}>
-                <input id="nd-state" name="state" placeholder="Gujarat" value={form.state} onChange={handleChange} className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} list="state-list" autoComplete="off" />
+                <input id="nd-state" name="state" placeholder="State" value={form.state} onChange={handleChange} className={errors.state ? 'nd-input nd-input-error' : 'nd-input'} list="state-list" autoComplete="off" />
                 <datalist id="state-list">
                   {indiaStates.map(s => <option key={s} value={s} />)}
                 </datalist>
@@ -272,7 +270,7 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
             <div className="nd-field">
               <label htmlFor="nd-city">City *</label>
               <div style={{ position: 'relative' }}>
-                <input id="nd-city" name="city" placeholder="Ahmedabad" value={form.city} onChange={handleChange} disabled={!form.state} className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} list="city-list" autoComplete="off" />
+                <input id="nd-city" name="city" placeholder="city / Village" value={form.city} onChange={handleChange} disabled={!form.state} className={errors.city ? 'nd-input nd-input-error' : 'nd-input'} list="city-list" autoComplete="off" />
                 <datalist id="city-list">
                   {indiaCities.map(c => <option key={c} value={c} />)}
                 </datalist>
@@ -281,12 +279,12 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
             </div>
 
             <div className="nd-field">
-              <label htmlFor="nd-subLocality">Sub-Locality / Area *</label>
-              <input id="nd-subLocality" name="subLocality" placeholder="Navrangpura" value={form.subLocality} onChange={handleChange} className={errors.subLocality ? 'nd-input nd-input-error' : 'nd-input'} />
+              <label htmlFor="nd-subLocality">Sub-Locality<span className="nd-optional">(optional)</span></label>
+              <input id="nd-subLocality" name="subLocality" placeholder="Area / Road / Street" value={form.subLocality} onChange={handleChange} className={errors.subLocality ? 'nd-input nd-input-error' : 'nd-input'} />
               {errors.subLocality && <span className="nd-error">{errors.subLocality}</span>}
             </div>
             <div className="nd-field">
-              <label htmlFor="nd-email">Email Address</label>
+              <label htmlFor="nd-email">Email Address <span className="nd-optional">(optional)</span></label>
               <input id="nd-email" name="email" type="email" placeholder="doc@example.com" value={form.email} onChange={handleChange} className={errors.email ? 'nd-input nd-input-error' : 'nd-input'} />
               {errors.email && <span className="nd-error">{errors.email}</span>}
             </div>
@@ -310,16 +308,39 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
             </div>
 
             <div className="nd-field">
-              <label htmlFor="nd-visitDay">Doctor Visit Day *</label>
-              <select id="nd-visitDay" name="visitDay" value={form.visitDay} onChange={handleChange} className={errors.visitDay ? 'nd-input nd-select nd-input-error' : 'nd-input nd-select'}>
-                <option value="">Select Visit Day…</option>
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-              </select>
+              <label>Doctor Visit Day *</label>
+              <div className="nd-checkbox-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '5px', padding: '0.5rem 0' }}>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
+                  const isChecked = form.visitDay ? form.visitDay.split(', ').includes(day) : false;
+                  return (
+                    <label key={day} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem', color: '#475569' }}>
+                      <input 
+                        type="checkbox" 
+                        name="visitDay" 
+                        value={day} 
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setForm(f => {
+                            let newDays = f.visitDay ? f.visitDay.split(', ').filter(Boolean) : [];
+                            if (e.target.checked) {
+                              if (!newDays.includes(value)) newDays.push(value);
+                            } else {
+                              newDays = newDays.filter(d => d !== value);
+                            }
+                            const order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                            newDays.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+                            return { ...f, visitDay: newDays.join(', ') };
+                          });
+                          setErrors(er => ({ ...er, visitDay: undefined }));
+                        }}
+                        style={{ accentColor: '#3b82f6', width: '16px', height: '16px', cursor: 'pointer' }}
+                      />
+                      {day}
+                    </label>
+                  );
+                })}
+              </div>
               {errors.visitDay && <span className="nd-error">{errors.visitDay}</span>}
             </div>
 
