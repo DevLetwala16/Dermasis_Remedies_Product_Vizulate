@@ -405,4 +405,4 @@ function EditDoctorInfoPage({ navigateTo, BACKEND_URL }) {
   );
 }
 
-export default EditDoctorInfoPage;
+export default EditDoctorInfoPage

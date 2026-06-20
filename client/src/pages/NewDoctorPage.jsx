@@ -336,5 +336,4 @@ function NewDoctorPage({ navigateTo, BACKEND_URL }) {
     </div>
   );
 }
-
 export default NewDoctorPage;
