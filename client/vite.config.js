@@ -7,62 +7,37 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // generateSW: plugin writes the SW; no hand-crafted file needed
       strategies: 'generateSW',
-
-      // autoUpdate: silently installs new SW when a new version is detected
       registerType: 'autoUpdate',
 
-      // Point to our manifest.json in /public (manifest: false = don't inject one)
+      // Use our own manifest.json from /public
       manifest: false,
 
-      // Pre-cache the app shell
       includeAssets: ['favicon.svg', 'pwa-192.png', 'pwa-512.png'],
 
       workbox: {
-        // Glob patterns for precaching (relative to dist/)
+        // Pre-cache only the compiled app shell (JS, CSS, HTML, local assets)
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
 
-        // ── Runtime caching strategies ──────────────────────────────────────
-
         runtimeCaching: [
-          // Cloudinary images: NetworkFirst so the browser ALWAYS gets a live
-          // image on the first load (no cache-miss blank response).
-          // After the first successful fetch the image is stored and served
-          // instantly on subsequent visits / offline.
-          {
-            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'dermasis-cloudinary-images',
-              // Give Cloudinary's CDN up to 8 s before falling back to cache
-              networkTimeoutSeconds: 8,
-              expiration: {
-                maxEntries: 150,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-                // Automatically evict oldest entries if storage quota is hit
-                purgeOnQuotaError: true,
-              },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-
-          // Google Fonts stylesheets: stale-while-revalidate
+          // ── Google Fonts CSS ──────────────────────────────────────────────
+          // StaleWhileRevalidate: always returns a response (cached or fresh)
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'dermasis-google-fonts-stylesheets',
-              expiration: { maxAgeSeconds: 60 * 60 * 24 * 365 }, // 1 year
+              cacheName: 'google-fonts-stylesheets',
+              expiration: { maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
 
-          // Google Fonts files: cache-first with 1-year expiry
+          // ── Google Fonts Files ────────────────────────────────────────────
+          // CacheFirst: font files never change once fetched
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'dermasis-google-fonts-webfonts',
+              cacheName: 'google-fonts-webfonts',
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
@@ -72,74 +47,79 @@ export default defineConfig({
             },
           },
 
-          // API calls: NetworkFirst with 15 s timeout (Render.com has cold-start
-          // delays up to ~30 s; 15 s balances UX vs. waiting too long)
+          // ── Backend API (same-origin /api/* calls) ────────────────────────
+          // NetworkFirst: always tries live data first; falls back to cache
+          // when the Render.com server is cold-starting or unreachable.
           {
-            urlPattern: /\/api\/.*/i,
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'dermasis-api',
-              networkTimeoutSeconds: 15,
+              cacheName: 'dermasis-api-cache',
+              networkTimeoutSeconds: 20,
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                maxAgeSeconds: 60 * 60 * 24,
                 purgeOnQuotaError: true,
               },
-              cacheableResponse: { statuses: [0, 200] },
+              cacheableResponse: { statuses: [200] },
             },
           },
+
+          // ── External API (Render.com absolute URL) ────────────────────────
+          {
+            urlPattern: /^https:\/\/dermasis-remedies-product-vizulate\.onrender\.com\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'dermasis-api-cache',
+              networkTimeoutSeconds: 20,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+
+          // NOTE: Cloudinary images are intentionally NOT intercepted here.
+          // The SW lets all res.cloudinary.com requests pass directly to the
+          // network so the browser fetches them from the CDN without any
+          // Service Worker interference. This guarantees images always load
+          // when the device is online.
         ],
 
-        // Offline fallback: only for same-origin navigations (not external URLs)
+        // Serve cached index.html for unmatched same-origin navigations only
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [
-          /^\/api\//,
-          // Exclude anything that looks like a file extension (images, fonts, etc.)
-          /\.[a-z]{2,4}$/i,
-        ],
-        // Also restrict navigateFallback to same-origin navigations only
-        navigateFallbackAllowlist: [/^\/(?!api)/],
+        navigateFallbackDenylist: [/^\/api\//],
 
-        // Skip waiting so new SW activates immediately after install
         skipWaiting: true,
         clientsClaim: true,
       },
 
-      // Dev mode: keep SW active during `npm run dev` so you can test offline
       devOptions: {
-        enabled: true,
-        type: 'module',
+        enabled: false, // disable SW in dev to avoid caching issues during development
       },
     }),
   ],
 
   build: {
-    // Split CSS into per-chunk files so unused CSS is not downloaded
     cssCodeSplit: true,
-    // Enable code splitting for better cacheability and reduced initial load
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // React runtime — most stable, longest cache lifetime
           if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
             return 'vendor-react';
           }
-          // Icon library — separate so product code changes don't bust icon cache
           if (id.includes('node_modules/lucide-react')) {
             return 'vendor-icons';
           }
-          // Axios — HTTP client, rarely changes
           if (id.includes('node_modules/axios')) {
             return 'vendor-axios';
           }
         },
       },
     },
-    // Target modern browsers for smaller output (no legacy polyfills)
     target: 'es2020',
-    // Reduce chunk size warnings threshold
     chunkSizeWarningLimit: 500,
-    // Vite 8 uses oxc as the default minifier (faster than esbuild)
-    // No explicit minify option needed — oxc is used automatically
   },
 })
