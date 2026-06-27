@@ -11,8 +11,7 @@ const clImg = (src, w) => {
   return src;
 };
 
-const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%230a1628'/%3E%3Crect x='20' y='20' width='260' height='260' rx='16' fill='%230f2040' stroke='%230d9488' stroke-width='1.5'/%3E%3Ctext x='150' y='130' font-family='system-ui' font-size='48' fill='%230d9488' text-anchor='middle'%3E💊%3C/text%3E%3Ctext x='150' y='175' font-family='system-ui' font-size='14' fill='%2394a3b8' text-anchor='middle'%3EDermasis Remedies%3C/text%3E%3Ctext x='150' y='200' font-family='system-ui' font-size='11' fill='%2364748b' text-anchor='middle'%3EImage unavailable offline%3C/text%3E%3C/svg%3E`;
-const handleImgError = (e) => { if (!navigator.onLine) { e.currentTarget.src = PLACEHOLDER_SVG; } };
+
 
 function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
   const [doctor,       setDoctor]       = useState(null);
@@ -263,7 +262,6 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
             width="730"
             height="730"
             style={{ aspectRatio: '1 / 1' }}
-            onError={handleImgError}
           />
         ) : (
           <div className="dv-no-products">
@@ -327,8 +325,7 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
           <div className="search-suggestions active">
             {filteredSug.map(p => (
               <div key={p.id} className="suggestion-item" onClick={() => handleSugClick(p)}>
-                <img src={clImg(p.link, 80)} alt={p.name} className="suggestion-img" width="40" height="40" loading="lazy"
-                  onError={handleImgError} />
+                <img src={clImg(p.link, 80)} alt={p.name} className="suggestion-img" width="40" height="40" loading="lazy" />
                 <span>{p.name}</span>
               </div>
             ))}
@@ -463,7 +460,6 @@ function DoctorDetailPage({ navigateTo, BACKEND_URL, doctorId }) {
                 width="1200"
                 height="1200"
                 style={{ aspectRatio: '1 / 1', objectFit: 'contain' }}
-                onError={handleImgError}
               />
             )}
             <button className={`nav-arrow right dv-arrow${arrowVisible || isPlaying ? ' dv-arrow-visible' : ''}`}
