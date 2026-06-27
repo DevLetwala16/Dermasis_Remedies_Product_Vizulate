@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-d20fdc50'], (function (workbox) { 'use strict';
+define(['./workbox-13942bd7'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -81,18 +81,20 @@ define(['./workbox-d20fdc50'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.neqneq30614"
+    "revision": "0.mbcshdcr7ig"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
     allowlist: [/^\/$/],
-    denylist: [/^\/api\//]
+    denylist: [/^\/api\//, /\.[a-z]{2,4}$/i]
   }));
-  workbox.registerRoute(/^https:\/\/res\.cloudinary\.com\/.*/i, new workbox.StaleWhileRevalidate({
+  workbox.registerRoute(/^https:\/\/res\.cloudinary\.com\/.*/i, new workbox.NetworkFirst({
     "cacheName": "dermasis-cloudinary-images",
+    "networkTimeoutSeconds": 8,
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 100,
-      maxAgeSeconds: 2592000
+      maxEntries: 150,
+      maxAgeSeconds: 2592000,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
@@ -107,17 +109,19 @@ define(['./workbox-d20fdc50'], (function (workbox) { 'use strict';
     "cacheName": "dermasis-google-fonts-webfonts",
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 30,
-      maxAgeSeconds: 31536000
+      maxAgeSeconds: 31536000,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]
   }), 'GET');
   workbox.registerRoute(/\/api\/.*/i, new workbox.NetworkFirst({
     "cacheName": "dermasis-api",
-    "networkTimeoutSeconds": 5,
+    "networkTimeoutSeconds": 15,
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
-      maxAgeSeconds: 86400
+      maxAgeSeconds: 86400,
+      purgeOnQuotaError: true
     }), new workbox.CacheableResponsePlugin({
       statuses: [0, 200]
     })]

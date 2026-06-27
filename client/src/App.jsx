@@ -22,11 +22,18 @@ const clImg = (src, w) => {
   return src;
 };
 
-// Graceful fallback: if a Cloudinary image fails to load (offline / cache miss)
-// swap the src to a branded SVG placeholder instead of showing broken alt text.
+// Graceful fallback: only swap to placeholder when the device is actually
+// offline. Online failures (e.g. 404, transient CDN blip) are silently
+// ignored so the browser can retry on its own.
 const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%230a1628'/%3E%3Crect x='20' y='20' width='260' height='260' rx='16' fill='%230f2040' stroke='%230d9488' stroke-width='1.5'/%3E%3Ctext x='150' y='130' font-family='system-ui' font-size='48' fill='%230d9488' text-anchor='middle'%3E💊%3C/text%3E%3Ctext x='150' y='175' font-family='system-ui' font-size='14' fill='%2394a3b8' text-anchor='middle'%3EDermasis Remedies%3C/text%3E%3Ctext x='150' y='200' font-family='system-ui' font-size='11' fill='%2364748b' text-anchor='middle'%3EImage unavailable offline%3C/text%3E%3C/svg%3E`;
 
-const handleImgError = (e) => { e.currentTarget.src = PLACEHOLDER_SVG; };
+const handleImgError = (e) => {
+  // Only show offline placeholder when there is no network — online errors
+  // (CDN blips, slow connections) should not trigger the fallback.
+  if (!navigator.onLine) {
+    e.currentTarget.src = PLACEHOLDER_SVG;
+  }
+};
 
 const LOGO_URL = `${CLOUDINARY_BASE}/f_auto,q_auto,w_300/${LOGO_VERSION}`;
 
@@ -348,7 +355,7 @@ function App() {
     return (
       <div className="loading-screen">
         <img src={LOGO_URL} alt="Dermasis Remedies Loading..." className="loading-logo"
-          crossOrigin="anonymous" onError={handleImgError}
+          onError={handleImgError}
           width="300" height="300" fetchpriority="high" />
         <p className="loading-text">LOADING ...</p>
       </div>
@@ -363,9 +370,9 @@ function App() {
       <div className="header-top">
         <div className="header-brand">
           <img src={LOGO_URL} alt="Dermasis Logo" className="header-logo" width="80" height="80"
-            crossOrigin="anonymous" onError={handleImgError} />
+            onError={handleImgError} />
           <div className="brand-container pharma-layout">
-            <h1 className="brand-name">DERMASIS</h1>
+            <h1 className="brand-name">Dermasis Vista</h1>
             <div className="divider" />
             <span className="brand-suffix">REMEDIES PVT. LTD.</span>
           </div>
@@ -574,7 +581,7 @@ function App() {
                       onClick={() => handleSuggestionClick(product)}>
                       <img src={clImg(product.link, 80)} alt={product.name}
                         className="suggestion-img" width="40" height="40" loading="lazy"
-                        crossOrigin="anonymous" onError={handleImgError} />
+                        onError={handleImgError} />
                       <span>{product.name}</span>
                     </div>
                   ))}
@@ -611,7 +618,6 @@ function App() {
                       width="730"
                       height="730"
                       style={{ aspectRatio: '1 / 1' }}
-                      crossOrigin="anonymous"
                       onError={handleImgError}
                     />
                   </div>
@@ -745,7 +751,6 @@ function App() {
                           width="1200"
                           height="1200"
                           style={{ aspectRatio: '1 / 1', objectFit: 'contain' }}
-                          crossOrigin="anonymous"
                           onError={handleImgError}
                         />
                       )}
@@ -856,7 +861,7 @@ function Footer() {
         <div className="footer-section" style={{ textAlign: 'center' }}>
           <img src={LOGO_URL_FOOTER} alt="Dermasis Logo" className="footer-logo"
             width="60" height="60" loading="lazy" style={{ margin: '0 auto 0rem' }}
-            crossOrigin="anonymous" onError={handleImgError} />
+            onError={handleImgError} />
           <p className="footer-text" style={{ marginTop: '0rem', justifyContent: 'center' }}>
             DERMASIS REMEDIES Pvt. Ltd.
           </p>

@@ -11,7 +11,7 @@ const clImg = (src, w) => {
 };
 
 const PLACEHOLDER_SVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%230a1628'/%3E%3Crect x='20' y='20' width='260' height='260' rx='16' fill='%230f2040' stroke='%230d9488' stroke-width='1.5'/%3E%3Ctext x='150' y='130' font-family='system-ui' font-size='48' fill='%230d9488' text-anchor='middle'%3E💊%3C/text%3E%3Ctext x='150' y='175' font-family='system-ui' font-size='14' fill='%2394a3b8' text-anchor='middle'%3EDermasis Remedies%3C/text%3E%3Ctext x='150' y='200' font-family='system-ui' font-size='11' fill='%2364748b' text-anchor='middle'%3EImage unavailable offline%3C/text%3E%3C/svg%3E`;
-const handleImgError = (e) => { e.currentTarget.src = PLACEHOLDER_SVG; };
+const handleImgError = (e) => { if (!navigator.onLine) { e.currentTarget.src = PLACEHOLDER_SVG; } };
 
 function EditDoctorPage({ navigateTo, BACKEND_URL }) {
   /* ── State ─────────────────────────────────────────────────── */
@@ -323,7 +323,7 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
                   {prodSuggestions.map(p => (
                     <div key={p._id} className="ed-suggestion-item" onClick={() => selectProduct(p)}>
                       <img src={clImg(p.link, 80)} alt={p.name} className="ed-sug-avatar" style={{ borderRadius: 4, objectFit: 'cover' }} loading="lazy"
-                        crossOrigin="anonymous" onError={handleImgError} />
+                        onError={handleImgError} />
                       <div>
                         <p className="ed-sug-name">{p.name}</p>
                       </div>
@@ -363,7 +363,6 @@ function EditDoctorPage({ navigateTo, BACKEND_URL }) {
                       alt={prod.name}
                       className="ed-product-thumb"
                       loading="lazy"
-                      crossOrigin="anonymous"
                       onError={handleImgError}
                     />
                     <div className="ed-product-details">
