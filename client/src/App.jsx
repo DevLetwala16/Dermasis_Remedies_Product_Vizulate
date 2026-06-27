@@ -359,7 +359,7 @@ function App() {
         <div className="header-brand">
           <img src={LOGO_URL} alt="Dermasis Logo" className="header-logo" width="80" height="80" />
           <div className="brand-container pharma-layout">
-            <h1 className="brand-name">Dermasis Vista</h1>
+            <h1 className="brand-name">DERMASIS</h1>
             <div className="divider" />
             <span className="brand-suffix">REMEDIES PVT. LTD.</span>
           </div>
