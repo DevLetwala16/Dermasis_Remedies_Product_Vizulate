@@ -26,15 +26,22 @@ export default defineConfig({
         // ── Runtime caching strategies ──────────────────────────────────────
 
         runtimeCaching: [
-          // Cloudinary images: stale-while-revalidate with 30-day expiry
+          // Cloudinary images: NetworkFirst so the browser ALWAYS gets a live
+          // image on the first load (no cache-miss blank response).
+          // After the first successful fetch the image is stored and served
+          // instantly on subsequent visits / offline.
           {
             urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'dermasis-cloudinary-images',
+              // Give Cloudinary's CDN up to 8 s before falling back to cache
+              networkTimeoutSeconds: 8,
               expiration: {
-                maxEntries: 100,
+                maxEntries: 150,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                // Automatically evict oldest entries if storage quota is hit
+                purgeOnQuotaError: true,
               },
               cacheableResponse: { statuses: [0, 200] },
             },
@@ -59,30 +66,39 @@ export default defineConfig({
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
+                purgeOnQuotaError: true,
               },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
 
-          // API calls: network-first with 5s timeout, cache fallback
+          // API calls: NetworkFirst with 15 s timeout (Render.com has cold-start
+          // delays up to ~30 s; 15 s balances UX vs. waiting too long)
           {
             urlPattern: /\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'dermasis-api',
-              networkTimeoutSeconds: 5,
+              networkTimeoutSeconds: 15,
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24, // 24 hours
+                purgeOnQuotaError: true,
               },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],
 
-        // Offline fallback: serve cached index.html for unmatched navigations
+        // Offline fallback: only for same-origin navigations (not external URLs)
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          // Exclude anything that looks like a file extension (images, fonts, etc.)
+          /\.[a-z]{2,4}$/i,
+        ],
+        // Also restrict navigateFallback to same-origin navigations only
+        navigateFallbackAllowlist: [/^\/(?!api)/],
 
         // Skip waiting so new SW activates immediately after install
         skipWaiting: true,
