@@ -7,9 +7,29 @@
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <!-- preconnect MUST come before the font stylesheet request -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+
+    <!--
+      Load Poppins as a NON-render-blocking stylesheet.
+      The media="print" trick: browser downloads the sheet without blocking render,
+      then onload switches media to "all" so it applies normally.
+      The <noscript> fallback covers JS-disabled environments.
+    -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      />
+    </noscript>
 
     <!-- Preload LCP image so browser fetches it before JS bundle executes -->
     <link

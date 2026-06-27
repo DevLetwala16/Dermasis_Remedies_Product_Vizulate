@@ -29,6 +29,35 @@ const BACKEND_URL = window.location.hostname === "localhost"
 
 const API_URL = `${BACKEND_URL}/api/vizulate-products`;
 
+// ── SWR-style localStorage cache ─────────────────────────────────────────────
+const CACHE_KEY = 'dermasis_products_v1';
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCached() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) return null; // stale — refetch but still return
+    return data;
+  } catch { return null; }
+}
+
+function setCached(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+  } catch { /* storage full — ignore */ }
+}
+
+function getStale() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { data } = JSON.parse(raw);
+    return data || null;
+  } catch { return null; }
+}
+
 // ── App ──────────────────────────────────────────────────────────────────────
 function App() {
   /* ── Home-page state ────────────────────────────────── */
@@ -117,37 +146,53 @@ function App() {
     window.history.pushState({ page: targetPage, params }, '');
   };
 
-  // ── Fetch main products ──────────────────────────────
+  // ── Fetch main products (stale-while-revalidate via localStorage) ──────────
   useEffect(() => {
-    const fetchData = async () => {
+    const applyProducts = (data) => {
+      setProducts(data);
+      // Preload first 5 images immediately, rest lazily
+      data.slice(0, 5).forEach(product => {
+        const img = new Image();
+        img.src = clImg(product.link, 900);
+      });
+      if (data.length > 5) {
+        setTimeout(() => {
+          data.slice(5).forEach(product => {
+            const img = new Image();
+            img.src = clImg(product.link, 900);
+          });
+        }, 3000);
+      }
+    };
+
+    const fetchFresh = async (showLoading) => {
       try {
         const response = await fetch(API_URL);
         if (response.ok) {
           const data = await response.json();
-          setProducts(data);
-          // Preload first 5 images immediately, rest lazily
-          data.slice(0, 5).forEach(product => {
-            const img = new Image();
-            img.src = clImg(product.link, 900);
-          });
-          // Lazy preload remaining after a short delay
-          if (data.length > 5) {
-            setTimeout(() => {
-              data.slice(5).forEach(product => {
-                const img = new Image();
-                img.src = clImg(product.link, 900);
-              });
-            }, 3000);
-          }
+          setCached(data);
+          applyProducts(data);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
-    fetchData();
+
+    // Try stale cache first (instant display, no loading spinner)
+    const stale = getStale();
+    if (stale && stale.length > 0) {
+      applyProducts(stale);
+      setLoading(false);
+      // Revalidate in background — update silently if data changed
+      fetchFresh(false);
+    } else {
+      // No cache: show loading spinner and wait for network
+      fetchFresh(true);
+    }
   }, []);
+
 
   // ── Close search on outside click ───────────────────
   useEffect(() => {

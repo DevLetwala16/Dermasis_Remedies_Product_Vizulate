@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Google Fonts (Poppins) is loaded as a non-blocking <link rel="preload"> in index.html */
+/* Removed @import here to eliminate the render-blocking CSS fetch. */
 
 :root {
   --color-primary: #1e3a8a; /* Deep Blue */
