@@ -44,6 +44,25 @@
 
     <!-- SEO meta description -->
     <meta name="description" content="A comprehensive guide to pioneering dermatological wellness for healthy, resilient skin. Explore Dermasis Remedies pharmaceutical products." />
+
+    <!-- ── PWA: Web App Manifest ── -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- ── PWA: iOS Safari support ── -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Dermasis" />
+    <link rel="apple-touch-icon" href="/pwa-192.png" />
+
+    <!-- ── PWA: Theme color (Android Chrome toolbar) ── -->
+    <!-- theme-color is not supported by Firefox and Opera; relying on manifest and tile color metadata instead -->
+
+    <!-- ── PWA: Windows tile color ── -->
+    <meta name="msapplication-TileColor" content="#0a1628" />
+    <meta name="msapplication-TileImage" content="/pwa-192.png" />
+
+    <!-- ── PWA: Mobile web app capable (Android legacy) ── -->
+    <meta name="mobile-web-app-capable" content="yes" />
   </head>
   <body>
     <div id="root"></div>

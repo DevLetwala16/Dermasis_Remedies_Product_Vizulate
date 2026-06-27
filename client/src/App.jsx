@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ChevronLeft, ChevronRight, Mail, MapPin, Phone, Eye, ChevronDown, Users, Maximize2, X, Play, Pause, Settings, Menu } from 'lucide-react';
 import './index.css';
+import PWABanners from './components/PWABanners.jsx';
 const DoctorsPage = React.lazy(() => import('./pages/DoctorsPage.jsx'));
 const NewDoctorPage = React.lazy(() => import('./pages/NewDoctorPage.jsx'));
 const DeleteDoctorPage = React.lazy(() => import('./pages/DeleteDoctorPage.jsx'));
@@ -519,6 +520,8 @@ function App() {
   // ── Route: Home (Product Visualizer) ────────────────
   return (
     <div className="app-container">
+      {/* ── PWA: install prompt, offline notice, update toast ── */}
+      <PWABanners />
       {Header}
 
       <main className="main-content" id="visualizer">
