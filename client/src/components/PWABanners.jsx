@@ -81,27 +81,24 @@ const styles = {
     cursor: 'pointer',
     transition: 'color 0.15s, border-color 0.15s',
   },
-  /* Toasts – top-right corner */
+  /* Toasts */
   toast: {
     position: 'fixed',
-    top: '72px',
-    right: '16px',
-    zIndex: 9998,
-    borderRadius: '12px',
-    padding: '12px 16px',
+    bottom: '20px',
+    right: '20px',
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '10px',
-    maxWidth: '300px',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    backgroundColor: '#323232',
+    color: '#ffffff',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    fontFamily: 'sans-serif',
+    zIndex: 1000,
     animation: 'dermasisFadeIn 0.35s ease',
-    fontSize: '13px',
-    lineHeight: 1.4,
   },
   offlineToast: {
-    background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
-    border: '1px solid rgba(99,102,241,0.4)',
-    color: '#c7d2fe',
+    borderLeft: '4px solid #f44336', // Example accent color
   },
   updateToast: {
     background: 'linear-gradient(135deg, #1a2e1a 0%, #14532d 100%)',
@@ -109,14 +106,36 @@ const styles = {
     color: '#bbf7d0',
   },
   toastIcon: {
-    fontSize: '18px',
-    flexShrink: 0,
-    lineHeight: 1,
-    marginTop: '1px',
+    marginRight: '12px',
+    fontSize: '20px',
   },
-  toastBody: { flex: 1, minWidth: 0 },
-  toastTitle: { fontWeight: 600, marginBottom: '2px' },
-  toastMsg: { opacity: 0.85, fontSize: '12px' },
+  toastBody: {
+    flexGrow: 1,
+    marginRight: '24px', // Gives space so text doesn't hit the 'X'
+  },
+  toastTitle: {
+    fontWeight: 'bold',
+    marginBottom: '2px',
+  },
+  toastMsg: {
+    fontSize: '13px',
+    opacity: 0.9,
+  },
+  /* Added Close Button Styles */
+  closeButton: {
+    background: 'none',
+    border: 'none',
+    color: 'inherit',
+    cursor: 'pointer',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    padding: '4px 8px',
+    opacity: 0.7,
+    transition: 'opacity 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   toastBtn: {
     marginTop: '8px',
     padding: '5px 12px',
@@ -187,7 +206,17 @@ function InstallBanner({ onInstall, onDismiss }) {
 
 /* ─── Offline Toast ──────────────────────────────────────────────────────────*/
 function OfflineToast() {
-  useEffect(() => { injectKeyframes(); }, []);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => { 
+    if (typeof injectKeyframes === 'function') {
+      injectKeyframes(); 
+    }
+  }, []);
+
+  // If the user closed the toast, don't render anything
+  if (!isVisible) return null;
+
   return (
     <div style={{ ...styles.toast, ...styles.offlineToast }} role="alert" aria-live="assertive">
       <span style={styles.toastIcon}>📡</span>
@@ -195,6 +224,14 @@ function OfflineToast() {
         <div style={styles.toastTitle}>You're offline</div>
         <div style={styles.toastMsg}>Some content may be unavailable. Cached data is still accessible.</div>
       </div>
+      {/* ─── Close Button ─── */}
+      <button 
+        onClick={() => setIsVisible(false)} 
+        style={styles.closeButton}
+        aria-label="Close notification"
+      >
+        ✕
+      </button>
     </div>
   );
 }
